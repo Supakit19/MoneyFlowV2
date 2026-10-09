@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
-import LineJsLocalAgent from './LineJsLocalAgent';
+import LineJsConnectorAgent from './LineJsConnectorAgent';
 import './LineJsBankAutomation.css';
 
 type Options = {
@@ -163,7 +163,7 @@ export default function LineJsBankAutomation() {
         </span>
       </div>
 
-      <LineJsLocalAgent
+      <LineJsConnectorAgent
         onConnected={load}
         onCandidate={(mid) => {
           update('senderMid', mid);

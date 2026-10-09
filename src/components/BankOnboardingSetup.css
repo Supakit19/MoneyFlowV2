@@ -1,0 +1,285 @@
+.bank-onboard {
+  display: grid;
+  gap: 15px;
+  margin-top: 18px;
+  color: #244534;
+}
+.bank-onboard-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #dcebe0;
+  background: #f8fcf8;
+  border-radius: 15px;
+}
+.bank-onboard-title > svg {
+  flex: none;
+  color: #238963;
+  margin-top: 2px;
+}
+.bank-onboard-title strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+.bank-onboard-title p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #658071;
+}
+.bank-onboard-status {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #e1ece3;
+  background: white;
+  border-radius: 14px;
+  padding: 13px 16px;
+}
+.bank-onboard-status div {
+  display: grid;
+  gap: 3px;
+}
+.bank-onboard-status strong {
+  font-size: 13px;
+}
+.bank-onboard-status small {
+  font-size: 11px;
+  color: #6a8676;
+}
+.bank-onboard-dot {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 100%;
+  flex: none;
+  background: #d5a341;
+  box-shadow: 0 0 0 4px #f8edce;
+}
+.bank-onboard-dot.is-ready {
+  background: #1ba674;
+  box-shadow: 0 0 0 4px #e0f6ea;
+}
+.bank-onboard-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #617e6a;
+  min-height: 65px;
+  font-size: 13px;
+}
+.bank-onboard-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  min-height: 48px;
+  width: 100%;
+  background: #168a61;
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 12px 16px;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+  cursor: pointer;
+}
+.bank-onboard-button:hover:not(:disabled) {
+  background: #0c7151;
+  transform: translateY(-1px);
+}
+.bank-onboard-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.bank-onboard-qr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #f4f8f3;
+  border: 1px dashed #b7d9bf;
+  border-radius: 16px;
+}
+.bank-onboard-qr svg {
+  border-radius: 9px;
+  border: 10px solid #fff;
+  box-sizing: content-box;
+  flex: none;
+}
+.bank-onboard-qr div {
+  flex: 1 1 200px;
+}
+.bank-onboard-qr strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+.bank-onboard-qr p {
+  color: #607b6c;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.bank-onboard-pin {
+  display: inline-block;
+  padding: 8px 11px;
+  border-radius: 8px;
+  background: #e4f0e7;
+  font-size: 12px;
+}
+.bank-onboard-pin b {
+  letter-spacing: 1.5px;
+}
+.bank-onboard-config {
+  display: grid;
+  gap: 13px;
+  padding-top: 5px;
+}
+.bank-onboard-field {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #3c5847;
+}
+.bank-onboard-field select,
+.bank-onboard-field input {
+  width: 100%;
+  min-height: 45px;
+  padding: 9px 13px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #234d38;
+  border: 1px solid #d7e4d9;
+  background: #fff;
+  border-radius: 10px;
+  outline: 0;
+  min-width: 0;
+}
+.bank-onboard-field select:focus,
+.bank-onboard-field input:focus {
+  border-color: #31a67a;
+  box-shadow: 0 0 0 3px #2b9c7019;
+}
+.bank-onboard-bank-option {
+  background: #f0f9f3;
+  color: #1f8058;
+  border: 1px solid #cae7d4;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bank-onboard-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #456451;
+}
+.bank-onboard-check input {
+  accent-color: #188f64;
+  margin-top: 4px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.bank-onboard-hint {
+  color: #74877b;
+  font-size: 12px;
+  line-height: 1.75;
+  margin: 0;
+}
+.bank-onboard-notice,
+.bank-onboard-error,
+.bank-onboard-success,
+.bank-onboard-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  line-height: 1.8;
+  border-radius: 11px;
+  padding: 12px 13px;
+}
+.bank-onboard-notice {
+  background: #fff6e6;
+  color: #865b1d;
+}
+.bank-onboard-error {
+  background: #fff1ee;
+  color: #aa4b40;
+  border: 1px solid #f6d6cf;
+}
+.bank-onboard-success {
+  background: #ecfaf1;
+  color: #1b885b;
+  border: 1px solid #c9edda;
+}
+.bank-onboard-privacy {
+  background: #f5f7f5;
+  color: #75887d;
+}
+.bank-onboard-privacy svg,
+.bank-onboard-success svg,
+.bank-onboard-error svg,
+.bank-onboard-notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+.bank-onboard-refresh {
+  background: transparent;
+  border: 0;
+  color: #4c8163;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px;
+}
+.bank-onboard-spin {
+  animation: bank-onboard-spin 1s linear infinite;
+}
+@keyframes bank-onboard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 700px) {
+  .bank-onboard-title {
+    padding: 14px;
+  }
+  .bank-onboard-qr {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 14px;
+  }
+  .bank-onboard-qr strong {
+    justify-content: center;
+  }
+  .bank-onboard-qr div {
+    flex: auto;
+  }
+  .bank-onboard-status {
+    padding: 11px 13px;
+  }
+}

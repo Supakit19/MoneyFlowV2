@@ -11,6 +11,7 @@
     "dev:tunnel": "cloudflared tunnel --no-autoupdate --url http://127.0.0.1:3012",
     "build": "tsc --noEmit && vite build",
     "test": "bun test",
+    "reset:preview": "bun --env-file=.env scripts/reset-local-data.ts",
     "start": "bun server/index.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",

@@ -1,0 +1,18 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+{$MONEYFLOW_DOMAIN} {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=15552000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Do not record full request URLs: LINE Login callback carries a short-lived OAuth code.
+    reverse_proxy web:80
+}

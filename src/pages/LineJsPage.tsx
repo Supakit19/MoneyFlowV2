@@ -12,11 +12,11 @@ export default function LineJsPage() {
             <span /> EXPERIMENTAL INTEGRATION
           </span>
           <h1>
-            LINEJS <em>Bank Automation</em>
+            เชื่อมธนาคาร <em>ผ่าน LINE</em>
           </h1>
           <p>
-            เชื่อมแจ้งเตือนธนาคารจากแชต LINE ส่วนตัว อ่านยอดจากข้อความและการ์ด KBank Live
-            แล้วบันทึกรายรับ–รายจ่ายอัตโนมัติเมื่อข้อมูลชัดเจน
+            เข้าสู่ระบบด้วย LINE ของคุณเอง เลือกแชตธนาคารและบัญชีเงิน จากนั้น MoneyFlow
+            จะช่วยบันทึกเงินเข้า–ออกอัตโนมัติ โดยไม่ต้องเปิดหน้าเว็บค้างไว้
           </p>
           <div className="mf-linejs-hero-pills">
             <span>

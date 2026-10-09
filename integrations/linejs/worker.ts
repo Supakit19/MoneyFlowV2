@@ -21,6 +21,8 @@ import {
   type BankSourceFormat,
 } from './bank-message-content.ts';
 import { FileStorage } from '@evex/linejs/storage';
+import { EncryptedLineStorage } from './encrypted-storage.ts';
+import { vaultKey } from '../../shared/linejs-vault.ts';
 import { HISTORY_BACKFILL_MS, recentBankMessages } from './recent-bank-history.ts';
 import { parseBankAlertFromSources } from '../../server/bank-source-parser.ts';
 import {
@@ -83,11 +85,31 @@ if (!discovery && !(await bridgeState())) {
   process.exit(0);
 }
 
-const sessionDir = join(homedir(), '.moneyflow-linejs');
+const hostedUserId = (process.env.LINEJS_HOSTED_USER_ID || '').trim();
+const hosted = hostedUserId.length > 0;
+if (hosted && !/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(hostedUserId)) {
+  console.error('Invalid hosted LINEJS account identifier');
+  process.exit(1);
+}
+const sessionDir = hosted
+  ? String(process.env.LINEJS_SESSION_DIR || '')
+  : join(homedir(), '.moneyflow-linejs');
+if (!sessionDir || (hosted && !sessionDir.startsWith('/'))) {
+  console.error('Invalid LINEJS session location');
+  process.exit(1);
+}
 if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true, mode: 0o700 });
 chmodSync(sessionDir, 0o700);
-const sessionPath = join(sessionDir, 'session.json');
-const storage = new FileStorage(sessionPath);
+const sessionPath = join(sessionDir, hosted ? 'session.enc' : 'session.json');
+// Legacy single-user setup remains unchanged; hosted accounts use encrypted
+// storage in a separate per-user directory with user-bound authenticated data.
+const storage = hosted
+  ? new EncryptedLineStorage(
+      sessionPath,
+      vaultKey(process.env.LINEJS_SESSION_ENCRYPTION_KEY),
+      hostedUserId,
+    )
+  : new FileStorage(sessionPath);
 const base = new BaseClient({ device: 'ANDROIDSECONDARY', storage });
 
 // LINEJS silently reports transport errors through BaseClient's "log" event.

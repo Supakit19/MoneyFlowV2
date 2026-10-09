@@ -15,7 +15,7 @@ export const menu = [
   { id: 'accounts', label: 'บัญชีและกระเป๋า', icon: Wallet },
   { id: 'recurring', label: 'รายการประจำ', icon: Repeat2 },
   { id: 'integrations', label: 'LINE & AI', icon: MessageCircle },
-  { id: 'linejs', label: 'LINEJS · ธนาคาร', icon: Landmark },
+  { id: 'linejs', label: 'เชื่อมธนาคาร', icon: Landmark },
   { id: 'security', label: 'บัญชีและความปลอดภัย', icon: ShieldCheck },
 ];
 export const pagePaths = {

@@ -1,13 +1,24 @@
 name: moneyflow-production
 
+# Production: docker compose --env-file .env.production -f docker-compose.production.yml up -d --build --wait
+# Standalone HTTPS on ports 80/443: add --profile tls.
+# Existing reverse proxy: leave tls profile OFF, forward your HTTPS proxy to 127.0.0.1:8080.
+x-log-policy: &logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    stop_grace_period: 60s
+    shm_size: 256mb
     environment:
       POSTGRES_USER: moneyflow
       POSTGRES_DB: moneyflow
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a fresh production PostgreSQL password}
       TZ: Asia/Bangkok
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -16,45 +27,85 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [internal]
+      start_period: 10s
+    networks: [database]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 160
+    mem_limit: 1g
+    logging: *logs
 
   api:
     build:
       context: .
       target: api
     restart: unless-stopped
+    init: true
+    stop_grace_period: 35s
     depends_on:
       postgres:
         condition: service_healthy
-    env_file: .env.production
+    env_file:
+      - path: ${MONEYFLOW_ENV_FILE:-.env.production}
+        required: true
     environment:
       NODE_ENV: production
       LISTEN_HOST: 0.0.0.0
-      APP_PORT: 3011
+      APP_PORT: "3011"
       DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.production}
-      WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in .env.production}
+      LINEJS_HOSTED_ENABLED: ${LINEJS_HOSTED_ENABLED:-0}
+      LINEJS_HOSTED_MAX_WORKERS: ${LINEJS_HOSTED_MAX_WORKERS:-4}
+      LINEJS_HOSTED_DATA_DIR: /var/lib/moneyflow-linejs
+      LINEJS_NODE_BIN: /usr/local/bin/node
+      WEB_ORIGIN: ${WEB_ORIGIN:?Set https origin in .env.production}
+    volumes:
+      - linejs_sessions:/var/lib/moneyflow-linejs
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 512
+    mem_limit: 2g
     healthcheck:
       test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3011/api/health').then(r=>r.json()).then(x=>process.exit(x.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 20s
       timeout: 10s
-      start_period: 35s
+      start_period: 45s
       retries: 5
-    networks: [internal]
+    networks: [database, application]
+    logging: *logs
 
   gateway:
     build:
       context: .
       target: api
     restart: unless-stopped
+    init: true
     depends_on:
       api:
         condition: service_healthy
-    env_file: .env.production
+    # This isolated gateway only needs the LINE signature secret, not the DB
+    # credentials, AI key, OAuth tokens or encrypted LINEJS session key.
     environment:
+      NODE_ENV: production
       LISTEN_HOST: 0.0.0.0
+      WEBHOOK_PORT: "3012"
       INTERNAL_API_URL: http://api:3011
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?Set LINE_CHANNEL_SECRET in .env.production}
     command: ["bun", "server/webhook-gateway.ts"]
-    networks: [internal]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=32m
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 80
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3012/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 6s
+      start_period: 15s
+      retries: 4
+    networks: [application]
+    logging: *logs
 
   web:
     build:
@@ -65,16 +116,64 @@ services:
       api:
         condition: service_healthy
       gateway:
-        condition: service_started
-    # Private bind: a trusted TLS gateway or reverse proxy should forward
-    # https://YOUR_DOMAIN to this port. Do not expose this HTTP port openly.
+        condition: service_healthy
+    # Only loopback is published. Never make :8080 internet-accessible directly.
     ports:
       - "127.0.0.1:${HTTP_PORT:-8080}:80"
-    networks: [internal]
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,nosuid,nodev,size=32m
+      - /var/run:rw,nosuid,nodev,size=8m
+      - /tmp:rw,nosuid,nodev,size=16m
+    pids_limit: 96
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      interval: 20s
+      timeout: 6s
+      start_period: 15s
+      retries: 4
+    networks: [application]
+    logging: *logs
+
+  # Optional HTTPS edge. Use ONLY if ports 80 and 443 are free on the VPS.
+  # If another project already owns them, omit --profile tls and use the
+  # existing host reverse proxy against 127.0.0.1:${HTTP_PORT:-8080}.
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["tls"]
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      MONEYFLOW_DOMAIN: ${MONEYFLOW_DOMAIN:-moneyflow.example.com}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 96
+    mem_limit: 192m
+    networks: [application]
+    logging: *logs
 
 volumes:
   postgres_data:
+  linejs_sessions:
+  caddy_data:
+  caddy_config:
 
 networks:
-  internal:
+  # PostgreSQL has no host ports and cannot reach the public Internet.
+  database:
+    driver: bridge
+    internal: true
+  # API/worker need outbound HTTPS for LINE, Google and Gemini.
+  application:
     driver: bridge

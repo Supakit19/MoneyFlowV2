@@ -123,6 +123,14 @@ CREATE TABLE IF NOT EXISTS bank_linejs_settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS auto_transfer BOOLEAN NOT NULL DEFAULT false;
+-- Each hosted connector has its own encrypted LINE session and encrypted
+-- bearer token. Existing local users remain local, with no session migration.
+ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_mode TEXT NOT NULL DEFAULT 'local'
+  CHECK (connector_mode IN ('local','hosted'));
+ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_token_encrypted TEXT;
+ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_run_enabled BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_linejs_hosted_resume ON bank_linejs_settings(updated_at DESC)
+  WHERE connector_mode='hosted' AND connector_run_enabled=true;
 -- Retire legacy auto-save mode flags; keep the LINE OA push preference
 -- user-controlled and persistent across API restarts.
 UPDATE bank_linejs_settings SET auto_save=false, auto_transfer=false

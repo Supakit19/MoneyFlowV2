@@ -1,5 +1,7 @@
 # MoneyFlow — Structure, routing and production preparation
 
+> **Current VPS deployment procedure:** See [../VPS_DEPLOY.md](../VPS_DEPLOY.md). The current Docker Compose supports an optional Caddy TLS profile (`--profile tls`) as well as an existing HTTPS reverse proxy. The longer notes below describe the earlier reverse-proxy-only layout.
+
 ## Client-side application structure
 
 Each page has a real browser URL. React Router (BrowserRouter) handles forward/back navigation and direct links. Session bootstrap waits for a server response before rendering a sign-in form, so a logged-in visitor does not briefly see the login page on refresh.
@@ -80,7 +82,7 @@ This local compose is **not** the production stack. It uses a development-only d
 
 ## Production deployment — Docker Compose behind HTTPS
 
-These files are ready for a remote Linux VPS/Docker host, but **no real server, domain, secrets or database have been deployed**. The production compose creates its *own independent database*; it does not migrate or erase the Mac's current data.
+These files are ready for a remote Linux VPS/Docker host, but **no real server, domain, secrets or database have been deployed**. Caddy TLS is now provided as an optional profile; see the current [VPS_DEPLOY.md](../VPS_DEPLOY.md) for commands. The production compose creates its *own independent database*; it does not migrate or erase the Mac's current data.
 
 ### 1. Prepare a real domain and TLS termination
 

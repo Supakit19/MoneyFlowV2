@@ -17,9 +17,14 @@ import { fullFinanceOverview, setPreferences } from './moneyflow-features.ts';
 import { handleLineMessage } from './line-bot.ts';
 import { runDailyDigest } from './daily-digest.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
+import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
+import { hostedLineJsManager } from './linejs-hosted-manager.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
 
 let publishFinance: PublishFn = () => {};
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+  throw Error('Production DATABASE_URL missing; refusing local database fallback');
+}
 const sql = postgres(
   process.env.DATABASE_URL || 'postgres://moneyflow:moneyflow_local@127.0.0.1:55432/moneyflow',
   { max: 8 },
@@ -179,6 +184,7 @@ const app = new Elysia()
   .use(cors({ origin: allowedOrigins, credentials: true }))
   .use(createAuthRoutes(sql))
   .use(createBankLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
+  .use(createHostedLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .get('/api/health', async () => {
     try {
       await sql`SELECT 1`;
@@ -619,7 +625,9 @@ try {
   await sql.unsafe(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
   console.log('PostgreSQL migrated');
 } catch (e) {
-  console.error('Database unavailable:', e);
+  console.error('PostgreSQL schema migration failed; refusing to serve traffic',
+    e instanceof Error ? e.name : 'unknown');
+  throw e;
 }
 setInterval(() => void workQueue(), 4000);
 // Opt-in only: this uses LINE Push quota, never enabled by default.
@@ -628,6 +636,30 @@ void runDailyDigest(sql);
 app.listen({ hostname: process.env.LISTEN_HOST || '127.0.0.1', port });
 publishFinance = startRealtime(sql, port + 50);
 console.log('MoneyFlow API http://127.0.0.1:' + port);
+
+// Hosted sessions are resumed from per-user encrypted credentials only after
+// the database schema is ready. A stopped user never resumes automatically.
+void (async () => {
+  if (!hostedLineJsManager.available) return;
+  const rows = await sql`
+    SELECT user_id,connector_token_encrypted,enabled,sender_mid,account_id
+    FROM bank_linejs_settings
+    WHERE connector_mode='hosted' AND connector_run_enabled=true
+      AND connector_token_encrypted IS NOT NULL
+    ORDER BY updated_at DESC LIMIT 8
+  `;
+  await hostedLineJsManager.restore(
+    rows.map((row) => ({
+      userId: row.user_id,
+      tokenEncrypted: row.connector_token_encrypted,
+      enabled: row.enabled === true,
+      senderMid: row.sender_mid,
+      accountId: row.account_id,
+    })),
+  );
+})().catch(() => {
+  console.warn('[LINEJS] Hosted connector resume unavailable; legacy local connector unaffected');
+});
 
 // Restore the locally opted-in LINEJS Worker after the API starts or reloads.
 // Bun --watch terminates that child on every server restart, so restore it

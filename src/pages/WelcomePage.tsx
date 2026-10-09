@@ -7,6 +7,7 @@ import {
   CircleHelp,
   Copy,
   Link2,
+  Landmark,
   MessageCircle,
   ShieldCheck,
   Sparkles,
@@ -15,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
+import BankOnboardingSetup from '../components/BankOnboardingSetup';
 import type { Data } from '../lib/finance';
 import { amount, baht } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
@@ -34,6 +36,7 @@ const steps = [
   { title: 'บัญชีเงิน', desc: 'เริ่มจากเงินที่มี', icon: Wallet },
   { title: 'งบของคุณ', desc: 'วางแผนตามสบาย', icon: Target },
   { title: 'เชื่อม LINE', desc: 'เชื่อมเมื่อพร้อม', icon: MessageCircle },
+  { title: 'เชื่อมธนาคาร', desc: 'รับรายการอัตโนมัติ', icon: Landmark },
 ] as const;
 
 const satang = (value: string) => Math.round(Number(value || '0') * 100);
@@ -116,11 +119,11 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
           });
         }
       }
-      if (step === 2) {
+      if (step === 3) {
         await onFinish('completed');
         return;
       }
-      setStep((current) => Math.min(current + 1, 2));
+      setStep((current) => Math.min(current + 1, 3));
       setErrors({});
     } catch (e) {
       notify(readableError(e), 'error');
@@ -197,14 +200,18 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                   ? 'ยินดีต้อนรับสู่ MoneyFlow'
                   : step === 1
                     ? 'วางแผนเงินให้สบายใจ'
-                    : 'ให้ LINE ช่วยจดรายจ่าย'}
+                    : step === 2
+                      ? 'ให้ LINE ช่วยจดรายจ่าย'
+                      : 'เชื่อมธนาคาร บันทึกเงินให้อัตโนมัติ'}
               </h1>
               <p>
                 {step === 0
                   ? 'เริ่มจากตั้งค่าบัญชีหลักของคุณ ไม่ถึง 2 นาทีก็พร้อมใช้งาน'
                   : step === 1
                     ? 'ตั้งงบแบบใช้ซ้ำทุกสัปดาห์ และเป้าหมายเงินออมของคุณเอง'
-                    : 'จะเชื่อมตอนนี้หรือค่อยทำทีหลังก็ได้ ทุกอย่างจัดการได้ในเว็บ'}
+                    : step === 2
+                      ? 'จะเชื่อมตอนนี้หรือค่อยทำทีหลังก็ได้ ทุกอย่างจัดการได้ในเว็บ'
+                      : 'สแกน LINE ด้วยมือถือ เลือกบัญชีเงินและเปิดรับรายการได้ในขั้นตอนเดียว หรือข้ามไปก่อนก็ได้'}
               </p>
             </div>
             <nav className="welcome-progress" aria-label="ขั้นตอนเริ่มต้นใช้งาน">
@@ -236,11 +243,15 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                     <Wallet size={25} />
                   ) : step === 1 ? (
                     <Target size={25} />
-                  ) : (
+                  ) : step === 2 ? (
                     <MessageCircle size={25} />
+                  ) : (
+                    <Landmark size={25} />
                   )}
                 </span>
-                <span className="welcome-step-number">ขั้นตอน {step + 1} จาก 3</span>
+                <span className="welcome-step-number">
+                  ขั้นตอน {step + 1} จาก {steps.length}
+                </span>
               </div>
               {step === 0 && (
                 <div className="welcome-fields">
@@ -423,6 +434,17 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                   </div>
                 </div>
               )}
+              {step === 3 && (
+                <div className="welcome-fields">
+                  <h2>เชื่อมธนาคารเพื่อให้ MoneyFlow จดเงินแทนคุณ</h2>
+                  <p>ไม่ต้องเปิดหน้าเว็บค้างไว้ ข้อมูลของแต่ละคนแยกกันและตั้งค่าภายหลังได้</p>
+                  <BankOnboardingSetup
+                    accounts={data.accounts}
+                    lineConnected={lineConnected}
+                    notify={notify}
+                  />
+                </div>
+              )}
               <div className="welcome-actions">
                 {step > 0 ? (
                   <button
@@ -440,7 +462,13 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                   <span className="welcome-optional-label">ปรับค่าเหล่านี้ทีหลังได้เสมอ</span>
                 )}
                 <button className="welcome-primary" type="submit" disabled={busy}>
-                  {busy ? 'กำลังบันทึก...' : step === 2 ? 'เสร็จสิ้น ไปที่ Dashboard' : 'บันทึกและไปต่อ'}
+                  {busy
+                    ? 'กำลังบันทึก...'
+                    : step === 3
+                      ? 'เสร็จสิ้น ไปที่ Dashboard'
+                      : step === 2
+                        ? 'ต่อไป: เชื่อมธนาคาร'
+                        : 'บันทึกและไปต่อ'}
                   {!busy && <ArrowRight size={17} />}
                 </button>
               </div>
@@ -471,8 +499,12 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                 <b>{weekly ? baht(Number(weekly)) : 'ยังไม่ตั้งงบ'}</b>
               </div>
               <div>
-                <span>LINE</span>
+                <span>LINE OA</span>
                 <b>{lineConnected ? 'เชื่อมแล้ว ✓' : 'เชื่อมภายหลังได้'}</b>
+              </div>
+              <div>
+                <span>รายการจากธนาคาร</span>
+                <b>ตั้งค่าได้ที่ขั้นตอน 4</b>
               </div>
             </div>
             <div className="welcome-aside-bottom">

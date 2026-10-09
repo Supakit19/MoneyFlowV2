@@ -3,8 +3,14 @@ dist
 .git
 .env
 .env.*
+**/.env
+**/.env.*
+**/.npmrc
 !.env.example
+!**/.env.example
 .DS_Store
+.backups/
+.ux-audit/
 *.log
 coverage
 tmp

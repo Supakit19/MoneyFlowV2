@@ -4,6 +4,7 @@ import type { Sql } from 'postgres';
 import { BANK_CHANNELS, type BankChannel } from './bank-notification-parser.ts';
 import type { PublishFn } from './realtime.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
+import { hostedLineJsManager } from './linejs-hosted-manager.ts';
 import type { BankSourceFormat } from '../integrations/linejs/bank-message-content.ts';
 import { parseBankAlertFromSources } from './bank-source-parser.ts';
 import { pushBankReceipt, pushUnrecognizedBankAlert } from './bank-linejs-push.ts';
@@ -155,8 +156,30 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
           updated_at=now()
         WHERE user_id=${userId} RETURNING *
       `;
+          // A hosted user finishing Sender MID/account setup is switched from
+          // discovery into bank-listening mode without a terminal or restart.
+          let connectorWarning = '';
+          const updated = rows[0];
+          if (
+            updated.connector_mode === 'hosted' &&
+            updated.connector_run_enabled &&
+            updated.connector_token_encrypted
+          ) {
+            try {
+              await hostedLineJsManager.start({
+                userId,
+                tokenEncrypted: updated.connector_token_encrypted,
+                enabled: updated.enabled === true,
+                senderMid: updated.sender_mid,
+                accountId: updated.account_id,
+              });
+            } catch {
+              connectorWarning =
+                'บันทึกการตั้งค่าแล้ว แต่ Hosted LINEJS ยังเริ่มไม่ได้ กรุณากดเริ่มอีกครั้ง';
+            }
+          }
           publish(userId, 'settings.changed');
-          return { ok: true, settings: shapeSettings(rows[0]) };
+          return { ok: true, settings: shapeSettings(updated), connectorWarning };
         }),
       )
       // Old clients must not be able to re-enable the removed Auto Save mode.
@@ -174,6 +197,10 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
           if (rejectOrigin(ctx)) return { error: 'คำขอจากเว็บไม่ได้รับอนุญาต' };
           const newToken = 'mfbank_' + randomBytes(32).toString('hex');
           const current = await settings(db, userId);
+          if (current.connector_mode === 'hosted') {
+            ctx.set.status = 409;
+            return { error: 'บัญชี Hosted LINEJS ต้องจัดการโทเค็นผ่านหน้าเชื่อม LINE เท่านั้น' };
+          }
           await db`UPDATE bank_linejs_settings
         SET enabled=false,token_hash=${hash(newToken)},updated_at=now()
         WHERE user_id=${userId}
@@ -211,6 +238,10 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
         guarded(async (ctx, userId) => {
           if (rejectOrigin(ctx) || !requireLocalWeb(ctx)) return { error: 'คำขอไม่ได้รับอนุญาต' };
           const conf = await settings(db, userId);
+          if (conf.connector_mode === 'hosted') {
+            ctx.set.status = 409;
+            return { error: 'บัญชีนี้ใช้ Hosted LINEJS อยู่ กรุณายกเลิกเชื่อม Hosted ก่อน' };
+          }
           const agent = lineJsLocalManager.status(userId, conf.token_hash);
           if (!agent.available) throw Error(agent.reason || 'Local Agent ไม่พร้อมใช้');
           if (agent.running || agent.externalRunning) throw Error('กรุณาหยุด Worker เดิมก่อนเชื่อมใหม่');
@@ -258,7 +289,8 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
           return { error: 'โทเค็น Worker ไม่ถูกต้อง' };
         }
         const rows = await db`
-        SELECT enabled,(sender_mid IS NOT NULL) AS sender_configured,
+        SELECT enabled,connector_mode,connector_run_enabled,
+          (sender_mid IS NOT NULL) AS sender_configured,
           (account_id IS NOT NULL) AS account_configured
         FROM bank_linejs_settings WHERE token_hash=${hash(header.slice(7))} LIMIT 1
       `;
@@ -268,7 +300,8 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
         }
         return {
           ok: true,
-          enabled: rows[0].enabled,
+          enabled:
+            rows[0].enabled && (rows[0].connector_mode !== 'hosted' || rows[0].connector_run_enabled),
           configured: rows[0].sender_configured && rows[0].account_configured,
         };
       })
@@ -289,7 +322,8 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
         }
         const conf = confRows[0],
           userId = conf.user_id;
-        if (!conf.enabled) return { ok: true, status: 'paused' };
+        if (!conf.enabled || (conf.connector_mode === 'hosted' && !conf.connector_run_enabled))
+          return { ok: true, status: 'paused' };
         const b = ctx.body || {};
         // Source class is provided by LINEJS; never store its raw chat metadata.
         const sourceFormat: SafeBankSource = [

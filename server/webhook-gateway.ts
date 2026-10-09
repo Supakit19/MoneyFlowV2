@@ -45,6 +45,8 @@ Bun.serve({
   hostname: process.env.LISTEN_HOST || '127.0.0.1',
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === '/healthz' && request.method === 'GET')
+      return new Response('ok', {status: 200, headers: {'cache-control': 'no-store'}});
     if (url.pathname !== '/webhook/line') return new Response('Not Found', {status: 404});
     if (request.method !== 'POST') return new Response('Method Not Allowed', {status: 405});
     if (!(request.headers.get('content-type') || '').toLowerCase().includes('application/json')) {

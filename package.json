@@ -1,0 +1,47 @@
+{
+  "name": "moneyflow",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c green,cyan \"bun --watch server/index.ts\" \"vite --host 127.0.0.1\"",
+    "dev:api": "bun --watch server/index.ts",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:gateway": "bun --watch server/webhook-gateway.ts",
+    "dev:tunnel": "cloudflared tunnel --no-autoupdate --url http://127.0.0.1:3012",
+    "build": "tsc --noEmit && vite build",
+    "test": "bun test",
+    "start": "bun server/index.ts",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "format": "prettier --write src/app src/pages src/components src/lib src/main.tsx",
+    "format:check": "prettier --check src/app src/pages src/components src/lib src/main.tsx",
+    "line:menu:preview": "bun server/setup-richmenu.ts",
+    "line:menu:publish": "bun server/setup-richmenu.ts --apply"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
+    "@google/genai": "^1.20.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "elysia": "^1.4.0",
+    "google-auth-library": "^11.2.0",
+    "lucide-react": "^0.468.0",
+    "postgres": "^3.4.7",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7",
+    "recharts": "^2.15.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "concurrently": "^9.0.0",
+    "prettier": "^3",
+    "typescript": "^5.7.0",
+    "vite": "^6.1.0"
+  }
+}

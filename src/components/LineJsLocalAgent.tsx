@@ -1,0 +1,281 @@
+import React, { useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleHelp,
+  CirclePlay,
+  CircleStop,
+  Link2,
+  Monitor,
+  RefreshCw,
+  ShieldCheck,
+  Smartphone,
+  Wifi,
+} from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { useFinancePage } from '../app/FinanceContext';
+import { askConfirm } from '../ConfirmDialog';
+import './LineJsLocalAgent.css';
+
+type Agent = {
+  available: boolean;
+  running: boolean;
+  state: string;
+  mode: 'discovery' | 'listening';
+  linked: boolean;
+  externalRunning: boolean;
+  qrUrl: string;
+  pin: string;
+  candidateMid: string;
+  eventCount: number;
+  observedCount: number;
+  skippedCount: number;
+  historyChecks: number;
+  historyFailures: number;
+  historyRecent: number;
+  historyState: string;
+  historyLastCheckedAt: string;
+  lastOutcome: string;
+  lastError: string;
+  reason: string;
+};
+const outcomeText: Record<string, string> = {
+  saved: 'บันทึกแล้ว',
+  ignored: 'ข้ามรายการ',
+  duplicate: 'รายการซ้ำ',
+};
+const statusText: Record<string, string> = {
+  stopped: 'ยังไม่เริ่มทำงาน',
+  starting: 'กำลังเชื่อมต่อ...',
+  waiting_qr: 'รอสแกน QR ใน LINE',
+  connected: 'เชื่อมบัญชี LINE แล้ว',
+  listening: 'กำลังรับข้อความจาก LINE',
+  error: 'การเชื่อมต่อมีปัญหา',
+};
+
+export default function LineJsLocalAgent({
+  onConnected,
+  onCandidate,
+}: {
+  onConnected?: () => Promise<void>;
+  onCandidate?: (mid: string) => void;
+}) {
+  const { api, notify, demoMode } = useFinancePage();
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+  async function refresh() {
+    if (demoMode) return;
+    try {
+      const result = await api('/bank/linejs/local/status');
+      setAgent(result.agent);
+      setUnavailable(false);
+    } catch {
+      setUnavailable(true);
+    }
+  }
+  useEffect(() => {
+    if (demoMode) return;
+    void refresh();
+    const handle = window.setInterval(() => void refresh(), 4000);
+    return () => window.clearInterval(handle);
+  }, [demoMode]);
+
+  async function action(name: 'connect' | 'start' | 'stop') {
+    if (busy || demoMode) return;
+    if (name === 'connect') {
+      const agreed = await askConfirm({
+        title: 'เชื่อม LINEJS กับ MoneyFlow บน Mac?',
+        description:
+          'ระบบจะสร้างโทเค็นให้และเก็บเฉพาะบน Mac โดยอัตโนมัติ หากเคยใช้โทเค็นเดิม จะถูกแทนที่และ Flow จะปิดชั่วคราว ต้องเปิดอีกครั้งหลังตรวจการตั้งค่า',
+        confirmLabel: 'เชื่อมต่อบนเครื่องนี้',
+        tone: 'normal',
+      });
+      if (!agreed) return;
+    }
+    setBusy(true);
+    try {
+      const data = await api('/bank/linejs/local/' + name, 'POST');
+      if (data.agent) setAgent(data.agent);
+      if (name === 'connect') await onConnected?.();
+      notify(
+        name === 'connect'
+          ? 'เชื่อม Worker กับ MoneyFlow แล้ว ไม่ต้องตั้งค่า .env เอง'
+          : name === 'start'
+            ? 'เริ่ม LINEJS Worker แล้ว'
+            : 'สั่งหยุด LINEJS Worker แล้ว',
+        'success',
+      );
+      await refresh();
+    } catch (e: any) {
+      notify(e.message || 'ควบคุม Local Worker ไม่สำเร็จ', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (demoMode) return null;
+  return (
+    <div className="mf-agent-card">
+      <div className="mf-agent-heading">
+        <span className="mf-agent-symbol">
+          <Monitor size={20} />
+        </span>
+        <div>
+          <strong>LINEJS Local Agent</strong>
+          <p>จัดการตัวรับข้อความบน Mac ผ่านเว็บ ไม่ต้องเปิด Terminal สำหรับ Worker</p>
+        </div>
+        <span className={'mf-agent-state ' + (agent?.running ? 'active' : '')}>
+          <span /> {agent?.running ? 'ทำงานอยู่' : 'ไม่ได้ทำงาน'}
+        </span>
+      </div>
+      {unavailable || (agent && !agent.available) ? (
+        <div className="mf-agent-notice">
+          <CircleHelp size={17} />
+          <span>
+            {agent?.reason ||
+              'ควบคุม Local Agent ได้เฉพาะตอนเปิด MoneyFlow ที่ localhost บน Mac เครื่องนี้ หากใช้ VPS ต้องติดตั้ง Local Agent แยกก่อน'}
+          </span>
+        </div>
+      ) : !agent ? (
+        <div className="mf-agent-notice">กำลังตรวจการเชื่อมต่อ Local Agent...</div>
+      ) : (
+        <>
+          <div className="mf-agent-status-line">
+            <span>
+              <Wifi size={16} /> {statusText[agent.state] || agent.state}
+            </span>
+            <span>
+              {agent.running
+                ? agent.mode === 'listening'
+                  ? 'โหมดรับธนาคาร'
+                  : 'โหมดค้นหาผู้ส่ง'
+                : agent.linked
+                  ? 'เครื่องนี้พร้อมเชื่อม'
+                  : 'ยังไม่ได้เชื่อม Worker'}
+            </span>
+          </div>
+          {agent.externalRunning && (
+            <div className="mf-agent-notice">
+              <AlertTriangle size={17} />
+              <span>
+                พบ Worker ที่เปิดผ่าน Terminal อยู่ กรุณาปิดตัวเดิมด้วย Control + C
+                ก่อนใช้ปุ่มเริ่มผ่านเว็บ (ครั้งเดียว)
+              </span>
+            </div>
+          )}
+          <div className="mf-agent-buttons">
+            {!agent.linked && (
+              <button
+                type="button"
+                onClick={() => void action('connect')}
+                disabled={busy || agent.externalRunning}
+              >
+                <Link2 size={16} /> เชื่อม Worker บน Mac
+              </button>
+            )}
+            {!agent.running && agent.linked && (
+              <button
+                type="button"
+                className="is-primary"
+                onClick={() => void action('start')}
+                disabled={busy || agent.externalRunning}
+              >
+                <CirclePlay size={17} /> เริ่ม LINEJS
+              </button>
+            )}
+            {agent.running && (
+              <button
+                type="button"
+                className="is-stop"
+                onClick={() => void action('stop')}
+                disabled={busy}
+              >
+                <CircleStop size={17} /> หยุด LINEJS
+              </button>
+            )}
+            <button type="button" className="is-neutral" onClick={() => void refresh()} disabled={busy}>
+              <RefreshCw size={16} /> รีเฟรช
+            </button>
+          </div>
+          {agent.qrUrl && (
+            <div className="mf-agent-qr">
+              <div>
+                <strong>
+                  <Smartphone size={18} /> สแกน QR ใน LINE บนมือถือ
+                </strong>
+                <p>เปิด LINE → สแกน QR → ยืนยันการเข้าสู่ระบบบนอุปกรณ์นี้ ห้ามแชร์ภาพ QR หรือรหัส PIN</p>
+              </div>
+              <div className="mf-agent-qr-image">
+                <QRCodeSVG value={agent.qrUrl} size={178} level="M" />
+              </div>
+              {agent.pin && (
+                <div className="mf-agent-pin">
+                  รหัสยืนยันใน LINE <strong>{agent.pin}</strong>
+                </div>
+              )}
+            </div>
+          )}
+          {agent.candidateMid && (
+            <div className="mf-agent-candidate">
+              <div>
+                <strong>
+                  <ShieldCheck size={16} /> พบผู้ส่งที่อาจเป็นธนาคาร
+                </strong>
+                <small>ตรวจชื่อและตัวตนของแชต KBank Live จริงก่อนเลือก MID นี้</small>
+                <code>{agent.candidateMid}</code>
+              </div>
+              <button type="button" onClick={() => onCandidate?.(agent.candidateMid)}>
+                ใช้ MID นี้
+              </button>
+            </div>
+          )}
+          {agent.running && agent.mode === 'listening' && (
+            <p className="mf-agent-footnote">
+              ข้อความจากธนาคารที่ Worker ได้รับ {agent.observedCount ?? 0} · ส่งให้ MoneyFlow{' '}
+              {agent.eventCount ?? 0} · ข้าม/อ่านไม่ได้ {agent.skippedCount ?? 0}
+              {agent.lastOutcome
+                ? ' · ผลล่าสุด: ' + (outcomeText[agent.lastOutcome] || agent.lastOutcome)
+                : ''}
+            </p>
+          )}
+          {agent.running && agent.mode === 'listening' && (
+            <p className="mf-agent-footnote">
+              ตรวจข้อความล่าสุดจากแชตธนาคารแบบสำรองทุก 60 วินาที · ตรวจแล้ว {agent.historyChecks ?? 0}{' '}
+              รอบ · ข้อความใหม่หลังเปิด Worker {agent.historyRecent ?? 0} รายการ ·{' '}
+              {agent.historyState === 'ok'
+                ? 'อ่านประวัติได้'
+                : agent.historyState === 'bank_chat_unavailable'
+                  ? 'ไม่พบกล่องข้อความธนาคาร'
+                  : agent.historyState === 'fetch_error'
+                    ? 'อ่านประวัติไม่สำเร็จ'
+                    : 'รอการตรวจครั้งแรก'}
+            </p>
+          )}
+          {agent.running &&
+            agent.mode === 'listening' &&
+            agent.historyState === 'ok' &&
+            (agent.observedCount ?? 0) > 0 &&
+            (agent.skippedCount ?? 0) > 0 && (
+              <div className="mf-agent-notice">
+                <AlertTriangle size={17} />
+                <span>
+                  มีแจ้งเตือนธนาคารบางรายการที่ข้อมูลยอดหรือประเภทเงินไม่ชัดเจน
+                  ระบบจึงข้ามรายการนั้นเพื่อไม่ให้บันทึกเงินผิด และจะไม่บันทึกย้อนหลังอัตโนมัติ
+                </span>
+              </div>
+            )}
+          {agent.lastError && (
+            <div className="mf-agent-notice">
+              <AlertTriangle size={17} />
+              <span>{agent.lastError}</span>
+            </div>
+          )}
+          <p className="mf-agent-footnote">
+            LINE Session และ Token อยู่ใน Mac ของคุณเท่านั้น · เมื่อเปิด MoneyFlow บน VPS
+            จะไม่สามารถสั่งเปิด Worker บน Mac ผ่านเว็บไซต์ได้โดยตรง
+          </p>
+        </>
+      )}
+    </div>
+  );
+}

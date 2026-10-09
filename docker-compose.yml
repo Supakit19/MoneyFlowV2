@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: moneyflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: moneyflow
+      POSTGRES_PASSWORD: moneyflow_local
+      POSTGRES_DB: moneyflow
+      TZ: Asia/Bangkok
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - moneyflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moneyflow -d moneyflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+volumes:
+  moneyflow_pgdata:

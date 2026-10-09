@@ -1,0 +1,54 @@
+import React, { createContext, useContext } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { FinanceOverview } from '../MoneyWellness';
+import type { Data, Entry } from '../lib/finance';
+import type { FeedbackType } from '../feedback';
+export interface FinancePageValue {
+  live: Data;
+  demoMode: boolean;
+  overview: FinanceOverview | null;
+  realtime: 'online' | 'offline' | 'connecting';
+  view: string;
+  month: string;
+  search: string;
+  pair: string;
+  parseText: string;
+  parseError: string;
+  parsed: any;
+  lineStatus: any;
+  transactions: Entry[];
+  expenses: Entry[];
+  incomes: Entry[];
+  income: number;
+  expense: number;
+  balance: number;
+  spentCats: Array<Data['categories'][number] & { total: number }>;
+  chart: Array<{ day: string; income: number; expense: number }>;
+  setView: (id: string) => void;
+  switchMonth: (by: number) => void;
+  open: (type: string, kind?: string) => void;
+  row: (entry: Entry) => ReactNode;
+  setSearch: Dispatch<SetStateAction<string>>;
+  setPair: Dispatch<SetStateAction<string>>;
+  setParseText: Dispatch<SetStateAction<string>>;
+  setParseError: Dispatch<SetStateAction<string>>;
+  setParsed: Dispatch<SetStateAction<any>>;
+  setLineStatus: Dispatch<SetStateAction<any>>;
+  menuOpen: boolean;
+  setMenuOpen: Dispatch<SetStateAction<boolean>>;
+  notify: (message: string, type?: FeedbackType) => void;
+  reload: () => Promise<Data>;
+  api: (path: string, method?: string, body?: any) => Promise<any>;
+  del: (entry: Entry) => Promise<void>;
+  delRecurring: (id: string) => Promise<void>;
+  logout: () => Promise<void>;
+  parseWithAi: () => Promise<void>;
+  onExitDemo: () => void;
+}
+const Context = createContext<FinancePageValue | null>(null);
+export const FinancePageProvider = Context.Provider;
+export function useFinancePage(): FinancePageValue {
+  const state = useContext(Context);
+  if (!state) throw new Error('Finance page must render inside MoneyFlow workspace');
+  return state;
+}

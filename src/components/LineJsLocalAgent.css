@@ -1,0 +1,237 @@
+.mf-agent-card {
+  margin: 22px 25px 0;
+  padding: 22px;
+  border: 1px solid #d9e7e0;
+  background: linear-gradient(120deg, #ffffff, #f8fcf9);
+  border-radius: 16px;
+}
+.mf-agent-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mf-agent-symbol {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  border-radius: 12px;
+  background: #e4f3e8;
+  color: #207b59;
+}
+.mf-agent-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.mf-agent-heading strong {
+  color: #204c36;
+  font-size: 14px;
+}
+.mf-agent-heading p {
+  color: #7a9684;
+  font-size: 11px;
+  margin: 4px 0 0;
+  line-height: 1.7;
+}
+.mf-agent-state {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #87978b;
+  background: #f1f5f2;
+  border: 1px solid #e2eae3;
+  border-radius: 30px;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.mf-agent-state > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9eaaa2;
+}
+.mf-agent-state.active {
+  background: #e7f6ed;
+  color: #178054;
+  border-color: #cde9d5;
+}
+.mf-agent-state.active > span {
+  background: #13af75;
+  box-shadow: 0 0 0 3px #2abc8e26;
+}
+.mf-agent-status-line {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 19px;
+  padding: 12px 15px;
+  background: #f4f9f5;
+  color: #4b705a;
+  border-radius: 11px;
+  font-size: 12px;
+}
+.mf-agent-status-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.mf-agent-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #87632c;
+  background: #fff9ed;
+  border: 1px solid #f2e4c8;
+  border-radius: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.mf-agent-notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+.mf-agent-buttons {
+  margin-top: 17px;
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.mf-agent-buttons button,
+.mf-agent-candidate button {
+  border: 1px solid #cde4d5;
+  color: #247651;
+  border-radius: 10px;
+  background: #e7f7ed;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 14px;
+  font-weight: 750;
+  font-size: 12px;
+  cursor: pointer;
+}
+.mf-agent-buttons button.is-primary {
+  background: #176d4d;
+  color: #fff;
+  border-color: #176d4d;
+}
+.mf-agent-buttons button.is-stop {
+  background: #fff6f5;
+  border-color: #edcdc9;
+  color: #aa4d45;
+}
+.mf-agent-buttons button.is-neutral {
+  background: #fff;
+  border-color: #e0e9e2;
+  color: #52735e;
+}
+.mf-agent-buttons button:disabled,
+.mf-agent-candidate button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mf-agent-qr {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 18px;
+  border: 1px dashed #accbb6;
+  border-radius: 12px;
+  margin-top: 16px;
+  background: #f9fcfa;
+}
+.mf-agent-qr > div:first-child {
+  flex: 1;
+  min-width: 175px;
+}
+.mf-agent-qr strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #245c40;
+}
+.mf-agent-qr p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: #708b77;
+}
+.mf-agent-qr-image {
+  background: #fff;
+  border-radius: 10px;
+  padding: 13px;
+  border: 1px solid #dfece1;
+}
+.mf-agent-pin {
+  width: 100%;
+  color: #4c7556;
+  font-size: 12px;
+}
+.mf-agent-pin strong {
+  letter-spacing: 3px;
+  padding-left: 9px;
+}
+.mf-agent-candidate {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  border-radius: 11px;
+  background: #eaf7ee;
+  padding: 16px;
+  margin-top: 15px;
+}
+.mf-agent-candidate > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #1f6948;
+}
+.mf-agent-candidate > div strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.mf-agent-candidate small {
+  font-size: 11px;
+  color: #527b5e;
+}
+.mf-agent-candidate code {
+  font-size: 11px;
+  word-break: break-all;
+}
+.mf-agent-footnote {
+  margin: 16px 0 0;
+  font-size: 11px;
+  line-height: 1.75;
+  color: #849b8a;
+}
+@media (max-width: 660px) {
+  .mf-agent-card {
+    margin: 12px;
+    padding: 16px;
+  }
+  .mf-agent-heading {
+    flex-wrap: wrap;
+  }
+  .mf-agent-state {
+    margin-left: 54px;
+  }
+  .mf-agent-status-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .mf-agent-buttons button {
+    flex: 1;
+  }
+}

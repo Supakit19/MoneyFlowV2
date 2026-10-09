@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+!.env.production.example
+node_modules/
+dist/
+.DS_Store
+*.log
+coverage/
+
+.backups/
+
+# Browser screenshots and QA traces
+.ux-audit/

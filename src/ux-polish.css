@@ -1,0 +1,405 @@
+/*
+ * MoneyFlow UX pass: consistent reading sizes, discoverable actions,
+ * keyboard focus, purposeful empty states and compact screen reflow.
+ * Kept separate from legacy style.css to reduce regressions.
+ */
+:root {
+  --ux-ink: #254638;
+  --ux-muted: #6b8275;
+  --ux-green: #139a71;
+  --ux-focus: #76c69c;
+}
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--ux-focus);
+  outline-offset: 3px;
+}
+.sidebar .nav-item {
+  min-height: 47px;
+  line-height: 1.5;
+}
+.topbar .iconbtn,
+.month-control button,
+.iconbtn.delete {
+  min-width: 40px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+}
+.mobile-menu.iconbtn {
+  min-width: 42px;
+  min-height: 42px;
+}
+.month-control button {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+.month-control {
+  gap: 10px;
+}
+.tiny-link {
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 40px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tiny-link:hover {
+  background: #ecf6ec;
+  color: #0f6f50;
+}
+.panel-header h3 {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.panel-header p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #71877c;
+}
+.section-title p,
+.greeting p {
+  color: #718a7c;
+  line-height: 1.7;
+}
+.stat-card .stat-title {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.stat-card .stat-footer {
+  font-size: 11px;
+  line-height: 1.65;
+}
+.mf-week-unset {
+  font-size: clamp(16px, 1.8vw, 22px) !important;
+  letter-spacing: -0.2px !important;
+}
+.mf-week-total strong {
+  word-break: break-word;
+}
+.mf-week-card .mf-week-heading p,
+.mf-week-meta {
+  font-size: 12px;
+}
+.mf-week-coach p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.empty-action {
+  min-height: 230px;
+  padding: 42px 22px;
+  gap: 11px;
+}
+.empty-action > svg {
+  color: #90b99d;
+  background: #eff7f1;
+  width: 62px;
+  height: 62px;
+  padding: 16px;
+  border-radius: 20px;
+}
+.empty-action strong {
+  font-size: 16px;
+  color: #335b45;
+  line-height: 1.5;
+}
+.empty-action p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #758f7f;
+  margin: 0;
+  max-width: 375px;
+}
+.empty-action .button {
+  min-height: 44px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.list-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  border-top: 1px solid #edf1ed;
+  color: #819b89;
+  font-size: 12px;
+  padding: 8px 4px 8px;
+}
+.list-summary strong {
+  font-size: 14px;
+  color: #27523b;
+  margin-inline: 3px;
+}
+.list-summary button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: #edf7ef;
+  min-height: 38px;
+  font-weight: 750;
+  font-size: 11px;
+  color: #208258;
+}
+.search-box input[type='search']::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+.dashboard-chart-empty {
+  height: 100%;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 28px;
+  color: #7d9585;
+  text-align: center;
+  background: radial-gradient(ellipse at center, #f8fcf8, transparent 72%);
+}
+.dashboard-chart-icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  color: #139b75;
+  background: #e7f4e9;
+  border-radius: 20px;
+}
+.dashboard-chart-empty strong {
+  font-size: 17px;
+  color: #385b47;
+}
+.dashboard-chart-empty p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #829c8c;
+}
+.dashboard-chart-empty .button {
+  min-height: 43px;
+  margin-top: 4px;
+}
+.line-user-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  background: #fff7ea;
+  border: 1px solid #f0dbb8;
+  border-radius: 13px;
+  padding: 16px;
+  margin: 17px 0;
+  color: #956a31;
+}
+.line-user-notice > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.line-user-notice strong {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #865d2d;
+}
+.line-user-notice p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #947752;
+  margin: 6px 0;
+}
+.line-user-notice button {
+  border: 1px solid #e9d5ad;
+  background: #fffcf3;
+  border-radius: 9px;
+  color: #93632c;
+  min-height: 39px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.line-connection-steps p {
+  font-size: 12px !important;
+  line-height: 1.8 !important;
+  color: #617f6d;
+}
+.line-connection-steps strong {
+  color: #275c42;
+}
+.line-connection-steps code {
+  color: #286e52;
+  background: #e5f3e9;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.pair-code button.iconbtn {
+  min-width: 43px;
+  min-height: 43px;
+}
+.env-note {
+  line-height: 1.75;
+}
+.auth-formpanel form label {
+  font-size: 12px;
+}
+.auth-formheading p,
+.auth-providerpanel > p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.auth-linkrow button,
+.auth-recovery-link {
+  min-height: 36px;
+  padding: 7px;
+}
+.auth-footnote {
+  font-size: 11px;
+}
+.auth-authswitch button {
+  min-height: 45px;
+}
+.auth-formpanel form input:not([type='checkbox']) {
+  min-height: 48px;
+}
+.recurring-row {
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.recurring-row .tx-desc {
+  min-width: 0;
+  flex: 1;
+}
+.recurring-row .tx-desc span {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.recurring-row .iconbtn.delete {
+  min-width: 42px;
+  min-height: 42px;
+}
+.mobile-overlay {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+@media (max-width: 760px) {
+  .panel-header h3 {
+    font-size: 15px;
+  }
+  .panel-header p {
+    font-size: 12px;
+  }
+  .section-title {
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .section-title h2 {
+    font-size: 24px;
+    line-height: 1.4;
+    margin: 0 0 5px;
+  }
+  .section-title > .button,
+  .section-title .button-group {
+    max-width: 100%;
+  }
+  .section-title .button-group {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+  .section-title .button-group > .button {
+    min-height: 44px;
+  }
+  .greeting {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .greeting .button.primary {
+    font-size: 12px !important;
+    min-height: 45px !important;
+    width: max-content !important;
+    max-width: 100%;
+    padding: 12px 17px !important;
+    gap: 8px !important;
+    align-self: flex-start;
+  }
+  .greeting .button.primary svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  .month-control button {
+    height: 40px;
+    width: 40px;
+  }
+  .stat-card .stat-title {
+    font-size: 12px;
+  }
+  .empty-action {
+    min-height: 225px;
+    padding: 38px 15px;
+  }
+  .list-summary {
+    flex-wrap: wrap;
+  }
+  .list-summary button {
+    margin-left: auto;
+  }
+  .dashboard-chart-empty {
+    min-height: 240px;
+    padding: 22px 16px;
+  }
+  .mf-week-heading h3 {
+    font-size: 19px;
+  }
+  .mf-week-card .mf-week-total strong {
+    font-size: clamp(19px, 5vw, 26px);
+  }
+  .auth-formpanel form label {
+    font-size: 12px;
+  }
+}
+@media (max-width: 390px) {
+  .stat-card .stat-title {
+    font-size: 11.5px;
+  }
+  .panel-header {
+    gap: 7px;
+  }
+  .tiny-link {
+    font-size: 11px;
+    padding: 7px 4px;
+  }
+  .section-title .button-group > .button {
+    width: 100%;
+    justify-content: center;
+  }
+  .month-control {
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

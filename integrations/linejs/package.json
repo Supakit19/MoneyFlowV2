@@ -1,0 +1,12 @@
+{
+  "name": "moneyflow-linejs-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env worker.ts"
+  },
+  "dependencies": {
+    "@evex/linejs": "npm:@jsr/evex__linejs",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

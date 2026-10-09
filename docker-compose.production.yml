@@ -1,0 +1,80 @@
+name: moneyflow-production
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: moneyflow
+      POSTGRES_DB: moneyflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.production}
+      TZ: Asia/Bangkok
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moneyflow -d moneyflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      LISTEN_HOST: 0.0.0.0
+      APP_PORT: 3011
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.production}
+      WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in .env.production}
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3011/api/health').then(r=>r.json()).then(x=>process.exit(x.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 10s
+      start_period: 35s
+      retries: 5
+    networks: [internal]
+
+  gateway:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file: .env.production
+    environment:
+      LISTEN_HOST: 0.0.0.0
+      INTERNAL_API_URL: http://api:3011
+    command: ["bun", "server/webhook-gateway.ts"]
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+    # Private bind: a trusted TLS gateway or reverse proxy should forward
+    # https://YOUR_DOMAIN to this port. Do not expose this HTTP port openly.
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
+    networks: [internal]
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge

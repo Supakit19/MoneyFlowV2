@@ -1,0 +1,269 @@
+/* Router links retain existing MoneyFlow navigation styling. */
+.sidebar nav a.nav-item {
+  text-decoration: none;
+}
+.sidebar nav a.nav-item:focus-visible {
+  outline: 2px solid #d1eeab;
+  outline-offset: 2px;
+}
+.session-loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: #f6f9f6;
+  padding: 25px;
+}
+.session-loading-card {
+  width: min(100%, 460px);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 13px;
+}
+.session-loading-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  color: #215642;
+  font-size: 25px;
+}
+.session-loading-brand strong span {
+  color: #a4d67a;
+}
+.session-spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #daeadc;
+  border-top-color: #1ca17b;
+  border-radius: 50%;
+  animation: mf-spin 0.8s linear infinite;
+}
+.session-loading h1 {
+  margin: 8px 0 0;
+  color: #245141;
+  font-size: 19px;
+  letter-spacing: -0.4px;
+}
+.session-loading p {
+  max-width: 360px;
+  margin: 0;
+  color: #839d90;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.session-error .button {
+  margin-top: 12px;
+}
+@keyframes mf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.not-found {
+  margin: 40px auto;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 40px;
+  text-align: center;
+}
+.not-found h2 {
+  margin: 0;
+  font-size: 25px;
+  color: #20523b;
+}
+.not-found p {
+  color: #8ca394;
+  font-size: 13px;
+}
+.not-found a.button {
+  text-decoration: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-spinner {
+    animation: none;
+  }
+}
+
+.route-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  color: #789482;
+  min-height: 52vh;
+  font-size: 12px;
+}
+
+/* Compact header and preview banner, free of wrapped breadcrumb labels. */
+.breadcrumb {
+  min-width: 0;
+}
+.breadcrumb b {
+  min-width: 0;
+}
+.demo-banner-message {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.6;
+}
+.demo-banner button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .topbar {
+    gap: 10px;
+  }
+  .topbar .breadcrumb {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    gap: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .topbar .breadcrumb-parent,
+  .topbar .breadcrumb-arrow {
+    display: none;
+  }
+  .topbar .breadcrumb b {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+  .topbar .top-actions {
+    flex-shrink: 0;
+    gap: 8px;
+  }
+  .demo-banner {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 6px 9px;
+    align-items: start;
+  }
+  .demo-banner > svg {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 3px;
+  }
+  .demo-banner-message {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .demo-banner button {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin: 0;
+    min-height: 32px;
+    padding: 5px 0;
+  }
+}
+@media (max-width: 380px) {
+  .topbar {
+    gap: 6px;
+  }
+  .topbar .breadcrumb b {
+    max-width: none;
+  }
+}
+
+/* Tablet navigation: leave room for page identity instead of wrapping crumbs. */
+@media (min-width: 761px) and (max-width: 1000px) {
+  .topbar {
+    gap: 12px;
+  }
+  .topbar .breadcrumb {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .topbar .breadcrumb-parent,
+  .topbar .breadcrumb-arrow {
+    display: none;
+  }
+  .topbar .breadcrumb b {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .topbar .top-actions {
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .topbar .top-actions .today {
+    display: none;
+  }
+}
+
+.welcome-revisit {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 21px 23px;
+  margin-top: 23px;
+}
+.welcome-revisit-icon {
+  flex: 0 0 51px;
+  width: 51px;
+  height: 51px;
+  border-radius: 15px;
+  background: #e4f2df;
+  color: #2c8c62;
+  display: grid;
+  place-items: center;
+}
+.welcome-revisit > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.welcome-revisit h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: #274b3a;
+}
+.welcome-revisit p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #799583;
+}
+.welcome-revisit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 9px 14px;
+  border-radius: 11px;
+  background: #e5f4e8;
+  color: #147c59;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.welcome-revisit-link:hover {
+  background: #d9efdf;
+}
+@media (max-width: 700px) {
+  .welcome-revisit {
+    flex-wrap: wrap;
+    padding: 18px;
+  }
+  .welcome-revisit-link {
+    width: 100%;
+    justify-content: center;
+  }
+}

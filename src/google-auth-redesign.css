@@ -1,0 +1,528 @@
+/*
+ * MoneyFlow Google authentication UI refresh.
+ * Purpose: readable mobile sign-in, clearer troubleshooting hierarchy,
+ * and correct intrinsic sizing of the Google Identity Services button.
+ * Loaded after legacy style.css so existing account and LINE flows stay intact.
+ */
+
+.auth-background {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.auth-background > * {
+  min-width: 0;
+}
+
+.auth-background .auth-shell {
+  min-width: 0;
+  width: 100%;
+  max-width: 525px;
+}
+
+.auth-background .auth-portal,
+.auth-background .auth-authswitch,
+.auth-background .auth-formpanel,
+.auth-background .google-auth-area,
+.auth-background .google-auth-button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.auth-background .auth-authswitch {
+  gap: 6px;
+  padding: 5px;
+}
+
+.auth-background .auth-authswitch button {
+  min-width: 0;
+  min-height: 46px;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.auth-background .auth-authswitch button.chosen {
+  box-shadow: 0 3px 10px rgba(20, 65, 42, 0.085);
+}
+
+.auth-background .auth-providerpanel h3 {
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: -0.35px;
+  margin-bottom: 5px;
+  color: #234837;
+}
+
+.auth-background .auth-providerpanel > p {
+  font-size: 13px;
+  line-height: 1.85;
+  color: #6e8878;
+  margin-bottom: 16px;
+}
+
+.google-auth-area {
+  min-width: 0;
+  width: 100%;
+  padding: 20px;
+  margin: 14px 0 4px;
+  border: 1px solid #dcebdd;
+  border-radius: 18px;
+  background: linear-gradient(150deg, #f8fcf8 0%, #f4f9f4 100%);
+  box-shadow: none;
+}
+
+.google-auth-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 17px;
+  min-width: 0;
+}
+
+.google-auth-heading-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #16845b;
+  border-radius: 13px;
+  background: #e5f3e5;
+  border: 1px solid #cfebd4;
+}
+
+.google-auth-heading > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.google-auth-heading strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: #244936;
+}
+
+.google-auth-heading p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #789381;
+  margin: 3px 0 0;
+}
+
+.google-auth-button {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+/* Google injects an iframe with an explicit pixel size at render time. */
+.google-auth-button > div,
+.google-auth-button iframe {
+  max-width: 100%;
+}
+
+.google-auth-data-note {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 15px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #7c9786;
+  text-align: left;
+}
+
+.google-auth-data-note svg {
+  color: #1fa477;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.google-auth-loading,
+.google-auth-progress {
+  font-size: 12px;
+  color: #6b8776;
+  line-height: 1.75;
+}
+
+.google-auth-error {
+  font-size: 12px;
+  line-height: 1.75;
+  background: #fff1e9;
+  border: 1px solid #f4d4c8;
+  border-radius: 10px;
+  padding: 12px;
+  color: #aa5948;
+}
+
+.google-origin-help {
+  min-width: 0;
+  width: 100%;
+  margin-top: 19px;
+  padding: 0;
+  border-radius: 13px;
+  border: 1px solid #dbeade;
+  background: #fff;
+  box-shadow: none;
+  color: #355943;
+  overflow: hidden;
+}
+
+.google-origin-help > summary {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 11px;
+  padding: 13px 14px;
+  min-height: 66px;
+  cursor: pointer;
+  list-style: none;
+  color: #265d46;
+  font-weight: inherit;
+  transition: background-color 0.15s ease;
+  text-align: left;
+}
+
+.google-origin-help > summary::-webkit-details-marker,
+.google-admin-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.google-origin-help > summary::marker,
+.google-admin-help > summary::marker {
+  content: '';
+}
+
+.google-origin-help > summary:hover {
+  background: #f4faf5;
+}
+
+.google-origin-help > summary:focus-visible,
+.google-admin-help > summary:focus-visible {
+  outline: 3px solid #86d2af;
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.google-origin-help-icon {
+  display: grid;
+  flex: 0 0 39px;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  color: #238660;
+  background: #e7f5ec;
+  border-radius: 12px;
+}
+
+.google-origin-help-title {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+}
+
+.google-origin-help-title strong {
+  color: #254e3a;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 850;
+}
+
+.google-origin-help-title small {
+  color: #779385;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.65;
+}
+
+.google-origin-chevron {
+  flex: 0 0 auto;
+  color: #5f8c75;
+  transition: transform 0.18s ease;
+}
+
+.google-origin-help[open] .google-origin-chevron {
+  transform: rotate(-180deg);
+}
+
+.google-origin-help[open] > summary {
+  background: #f5faf5;
+  border-bottom: 1px solid #e4eee6;
+}
+
+.google-origin-help-content {
+  padding: 18px 17px 19px;
+}
+
+.google-origin-help-content > .google-help-intro {
+  margin: 0 0 17px;
+  font-size: 12px;
+  line-height: 1.85;
+  color: #6f8979;
+}
+
+.google-help-steps {
+  display: grid;
+  gap: 14px;
+}
+
+.google-help-steps > div {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.google-help-step-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #eaf6ec;
+  color: #19815b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.google-help-steps p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #688271;
+}
+
+.google-help-steps p strong {
+  font-weight: 800;
+  color: #355e46;
+}
+
+.google-help-quick-fix {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid #bedfc8;
+  border-radius: 11px;
+  padding: 12px 13px;
+  margin-top: 17px;
+  background: #eaf7ec;
+  color: #176d4d;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.6;
+}
+
+.google-help-quick-fix:hover {
+  background: #dff2e4;
+}
+
+.google-help-quick-fix svg {
+  flex-shrink: 0;
+}
+
+.google-admin-help {
+  min-width: 0;
+  border: 1px solid #e2ebe3;
+  border-radius: 12px;
+  margin-top: 18px;
+  background: #f7faf7;
+  overflow: hidden;
+}
+
+.google-admin-help > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  cursor: pointer;
+  list-style: none;
+  padding: 13px 15px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: #557663;
+}
+
+.google-admin-help > summary svg {
+  flex: 0 0 auto;
+  transition: transform 0.18s ease;
+}
+
+.google-admin-help[open] > summary svg {
+  transform: rotate(-180deg);
+}
+
+.google-admin-help-content {
+  min-width: 0;
+  padding: 0 14px 15px;
+  border-top: 1px solid #e4eee5;
+}
+
+.google-admin-help-content p {
+  font-size: 12px;
+  color: #637d6c;
+  line-height: 1.85;
+  margin: 13px 0;
+}
+
+.google-admin-help-content a:not(.google-origin-cloud) {
+  color: #127c54;
+  text-decoration: underline;
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.google-origin-label {
+  display: block;
+  color: #6d8573;
+  font-size: 12px;
+  font-weight: 750;
+  margin: 17px 0 8px;
+}
+
+.google-origin-copy {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.google-origin-copy code {
+  min-width: 0;
+  flex: 1 1 170px;
+  padding: 11px;
+  border-radius: 9px;
+  border: 1px solid #dce9dd;
+  background: #fff;
+  font-size: 11px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: #286b4d;
+}
+
+.google-origin-copy button {
+  min-height: 44px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid #a5d3b6;
+  background: #e0f3e4;
+  color: #167a56;
+  font-weight: 850;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.google-origin-copy button:hover {
+  background: #caebd3;
+}
+
+.google-help-copy-error {
+  color: #b65348 !important;
+  font-size: 12px !important;
+}
+
+.google-origin-cloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  min-height: 44px;
+  border-radius: 10px;
+  margin-top: 17px;
+  padding: 10px 13px;
+  background: #176b4f;
+  color: #fff !important;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 800;
+}
+
+.google-origin-cloud:hover {
+  background: #12583f;
+}
+
+@media (max-width: 760px) {
+  .auth-background {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auth-background .auth-shell {
+    max-width: 500px;
+    padding: 30px 16px 45px;
+  }
+  .auth-background .brand.large {
+    margin-bottom: 29px;
+  }
+  .auth-background .auth-formpanel {
+    padding: 17px;
+  }
+  .auth-background .auth-providerpanel h3 {
+    font-size: 18px;
+  }
+  .google-auth-area {
+    margin: 14px 0 4px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .google-auth-heading-icon {
+    flex-basis: 39px;
+    width: 39px;
+    height: 39px;
+  }
+  .google-origin-help-content {
+    padding: 15px 13px 17px;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-background .auth-shell {
+    padding: 26px 12px 40px;
+  }
+  .auth-background .auth-authswitch button {
+    padding: 11px 4px;
+    font-size: 12px;
+    gap: 5px;
+  }
+  .auth-background .auth-formpanel {
+    padding: 13px;
+  }
+  .google-auth-area {
+    padding: 11px;
+  }
+  .google-origin-help > summary {
+    padding: 11px 10px;
+    gap: 8px;
+  }
+  .google-origin-help-content {
+    padding: 13px 10px 15px;
+  }
+  .google-origin-help-title small {
+    font-size: 10.5px;
+  }
+  .google-origin-copy code {
+    flex-basis: 100%;
+  }
+  .google-origin-copy button {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .google-origin-help > summary,
+  .google-origin-chevron,
+  .google-admin-help > summary svg {
+    transition: none;
+  }
+}

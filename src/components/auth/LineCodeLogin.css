@@ -1,0 +1,338 @@
+.line-code-login {
+  min-width: 0;
+}
+
+.line-code-login > h3 {
+  color: #254a39;
+  font-size: 19px;
+  line-height: 1.5;
+  margin: 0 0 6px;
+}
+
+.line-code-description {
+  color: #789080;
+  font-size: 12px;
+  line-height: 1.85;
+  margin: 0 0 20px;
+}
+
+.line-code-login .auth-line-instructions {
+  margin: 17px 0 20px;
+  gap: 14px;
+}
+.line-code-login .auth-line-step p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.line-code-login .auth-line-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 52px;
+}
+
+.line-code-login .auth-line-challenge {
+  min-width: 0;
+  margin-top: 18px;
+}
+
+.line-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.line-code-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 9px;
+  border: 1px solid #cde4d3;
+  background: #fff;
+  padding: 7px 10px;
+  color: #138a60;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.line-code-login .auth-challenge-code code {
+  overflow-wrap: anywhere;
+}
+
+.line-code-chat-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #b7e0c6;
+  border-radius: 10px;
+  background: #e3f5e9;
+  color: #147651;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.7;
+  text-align: center;
+  text-decoration: none;
+}
+.line-code-chat-link:hover {
+  background: #cdefd9;
+}
+
+.line-code-login .auth-newcode {
+  min-height: 43px;
+  cursor: pointer;
+}
+
+.line-code-login .auth-line-tip {
+  margin-top: 19px;
+  font-size: 11px;
+  line-height: 1.85;
+}
+
+@media (max-width: 390px) {
+  .line-code-login .auth-challenge-code {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .line-code-login .auth-challenge-code code {
+    text-align: center;
+    font-size: 19px;
+  }
+  .line-code-login .auth-challenge-code .auth-copy-command {
+    width: 100%;
+  }
+}
+
+/* Optional QR scanner handoff for the existing LINE chat-code login. */
+.line-code-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 15px 0 6px;
+}
+.line-code-actions .line-code-chat-link {
+  margin: 0;
+  min-width: 0;
+  gap: 7px;
+  padding: 10px 9px;
+}
+.line-code-qr-trigger {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid #1ba078;
+  border-radius: 10px;
+  background: #159b73;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+.line-code-qr-trigger:hover {
+  background: #107c5d;
+}
+.line-code-qr-trigger:active {
+  transform: translateY(1px);
+}
+.line-code-qr-trigger:focus-visible,
+.line-code-qr-close:focus-visible,
+.line-code-qr-renew:focus-visible {
+  outline: 3px solid #8edcb7;
+  outline-offset: 3px;
+}
+
+.line-code-qr-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(440px, calc(100vw - 30px));
+  max-width: calc(100vw - 30px);
+  max-height: calc(100dvh - 28px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #dfece1;
+  border-radius: 24px;
+  background: #fff;
+  color: #254a39;
+  box-shadow: 0 26px 94px #153b2d2a;
+}
+.line-code-qr-dialog::backdrop {
+  background: #092e23a6;
+  backdrop-filter: blur(5px);
+}
+.line-code-qr-dialog-inner {
+  position: relative;
+  padding: 27px 29px 29px;
+  text-align: center;
+}
+.line-code-qr-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #e2eae2;
+  border-radius: 12px;
+  background: #f7faf7;
+  color: #698576;
+  cursor: pointer;
+}
+.line-code-qr-close:hover {
+  background: #e9f4ec;
+  color: #1e644b;
+}
+.line-code-qr-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 13px;
+  border-radius: 17px;
+  color: #168e63;
+  background: #e4f5e9;
+}
+.line-code-qr-dialog h3 {
+  margin: 0;
+  color: #234a39;
+  font-size: clamp(18px, 4.2vw, 22px);
+  font-weight: 850;
+  letter-spacing: -0.35px;
+}
+.line-code-qr-dialog-inner > p {
+  margin: 9px auto 0;
+  max-width: 350px;
+  color: #779080;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.line-code-qr-sheet {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 20px auto 10px;
+  padding: 13px;
+  border-radius: 18px;
+  border: 1px solid #deebe0;
+  background: #fff;
+  box-shadow: 0 6px 24px #18483212;
+}
+.line-code-qr-sheet > svg {
+  display: block;
+  width: min(220px, 62vw);
+  height: auto;
+  max-width: 100%;
+}
+.line-code-qr-sheet.is-expired > svg {
+  opacity: 0.08;
+  filter: grayscale(1);
+}
+.line-code-qr-expired {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  color: #9a6a3c;
+  font-size: 15px;
+  font-weight: 850;
+}
+.line-code-qr-countdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border: 1px solid #dceade;
+  border-radius: 10px;
+  color: #137e59;
+  background: #f1f8f2;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.line-code-qr-help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 21px 0 4px;
+}
+.line-code-qr-help span {
+  border: 1px solid #deede0;
+  border-radius: 9px;
+  background: #f6faf6;
+  color: #3d7354;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.line-code-qr-dialog-inner .line-code-qr-reminder {
+  margin-top: 13px;
+  font-size: 11px;
+  line-height: 1.85;
+}
+.line-code-qr-reminder strong {
+  color: #187a53;
+}
+.line-code-qr-mobile-link {
+  margin-top: 17px;
+  width: 100%;
+}
+.line-code-qr-renew {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 11px;
+  background: #159b73;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.line-code-qr-renew:hover {
+  background: #107e5d;
+}
+@media (max-width: 420px) {
+  .line-code-actions {
+    grid-template-columns: 1fr;
+  }
+  .line-code-qr-dialog-inner {
+    padding: 23px 17px 21px;
+  }
+  .line-code-qr-help {
+    gap: 6px;
+  }
+  .line-code-qr-help span {
+    font-size: 10px;
+    padding: 7px 8px;
+  }
+  .line-code-qr-sheet {
+    margin-top: 17px;
+  }
+}

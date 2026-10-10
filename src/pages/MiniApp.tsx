@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowDownLeft,
   ArrowLeft,
@@ -22,6 +23,7 @@ import { api } from '../lib/api';
 import type { Data, Entry } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
 import FlowLoader from '../components/FlowLoader';
+import { websiteFallbackForPocket } from '../app/entry-routes';
 import './MiniApp.css';
 
 type Tab = 'home' | 'history' | 'wallets';
@@ -52,6 +54,7 @@ const monthTitle = () =>
   }).format(new Date());
 
 export default function MiniApp() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('home');
   const [data, setData] = useState<Data | null>(null);
   const [overview, setOverview] = useState<FinanceOverview | null>(null);
@@ -91,35 +94,24 @@ export default function MiniApp() {
     try {
       const config = (await api('/mini/config')) as { enabled: boolean; liffId: string };
       if (!config.enabled || !config.liffId) {
-        // The website can still display an existing signed-in account when
-        // the LIFF integration is not configured; don't authorize new users.
-        try {
-          await refresh();
-        } catch {
-          setPageState('setup');
-        }
+        // The Pocket view is exclusively for the LINE app, not website login.
+        navigate('/login', { replace: true });
         return;
       }
 
       const liff = (await import('@line/liff')).default;
+      // LINE explicitly supports isInClient() before init(). Do not initialize
+      // or attempt LIFF Login from a regular website browser; it must keep
+      // the normal /login -> /welcome|/dashboard flow instead.
+      const websiteDestination = websiteFallbackForPocket(liff.isInClient());
+      if (websiteDestination) {
+        navigate(websiteDestination, { replace: true });
+        return;
+      }
+      // LIFF Pocket always verifies the active LINE identity, even when
+      // a web session already exists on the device.
       await liff.init({ liffId: config.liffId });
-      // Never trust a previous web session when opened INSIDE LINE: it might
-      // belong to another user of the device. Re-verify the LINE identity.
-      if (!liff.isInClient() && !liff.isLoggedIn()) {
-        try {
-          await refresh();
-          return;
-        } catch (error: any) {
-          if (error.status !== 401) throw error;
-        }
-      }
-      if (!liff.isLoggedIn()) {
-        if (!liff.isInClient()) {
-          liff.login({ redirectUri: window.location.origin + '/mini' });
-          return;
-        }
-        throw Error('LINE_LOGIN_REQUIRED');
-      }
+      if (!liff.isLoggedIn()) throw Error('LINE_LOGIN_REQUIRED');
       const idToken = liff.getIDToken();
       if (!idToken) throw Error('LINE_ID_TOKEN_MISSING');
       const signedIn = (await api('/mini/auth', 'POST', { idToken })) as {

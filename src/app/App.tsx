@@ -9,6 +9,7 @@ import { demoFinanceOverview } from './demoOverview';
 import { type Data, type Entry, amount, currentMonth, demo } from '../lib/finance';
 import { api, ApiError } from '../lib/api';
 import { activePage, toPagePath } from './navigation';
+import { websiteDestinationAfterLogin } from './entry-routes';
 import { FinancePageProvider } from './FinanceContext';
 import TransactionRow from '../components/TransactionRow';
 import SessionLoading from '../components/SessionLoading';
@@ -79,7 +80,7 @@ export default function App() {
       const next = await reload();
       setAuthStatus('authenticated');
       if (next.profile?.onboarding_state === 'pending' && location.pathname !== '/welcome') {
-        navigate('/welcome', { replace: true });
+        navigate(websiteDestinationAfterLogin(next.profile?.onboarding_state), { replace: true });
       }
     } catch (e) {
       setAuthStatus(e instanceof ApiError && e.status === 401 ? 'guest' : 'error');
@@ -317,9 +318,7 @@ export default function App() {
     setDemoMode(false);
     setError('');
     setModal('');
-    navigate(next.profile?.onboarding_state === 'pending' ? '/welcome' : '/dashboard', {
-      replace: true,
-    });
+    navigate(websiteDestinationAfterLogin(next.profile?.onboarding_state), { replace: true });
     notify(message);
   };
 

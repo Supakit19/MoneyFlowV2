@@ -27,8 +27,8 @@ export default function LoginPage({ onAuthenticated, onError, onPreview, error }
           <span className="eyebrow">YOUR MONEY, IN FLOW</span>
           <h1>เงินของคุณ จัดการได้ง่ายขึ้น</h1>
           <p>
-            สร้างบัญชีฟรีด้วยอีเมลหรือ Google แล้วเชื่อม LINE เพิ่มภายหลังก็ได้
-            ทุกช่องทางที่เชื่อมจะกลับมาที่ข้อมูลบัญชีเดียวกัน
+            สมัครหรือเข้าสู่ระบบด้วยอีเมล Google หรือ LINE แล้วจัดการเงินผ่านเว็บไซต์นี้
+            หากมีบัญชีเดิมอยู่แล้ว ให้เชื่อมช่องทางอื่นจากหน้าบัญชีและความปลอดภัย
           </p>
         </div>
         <Link to="/#line" className="auth-back-home auth-add-line-link">

@@ -41,7 +41,7 @@ async function post<T>(path: string, body: object): Promise<T> {
   return result as T;
 }
 
-/** LINE sign-up/sign-in via the verified OA chat, with direct LIFF sign-in on mobile. */
+/** LINE sign-up/sign-in on the website through a one-time OA chat challenge. LIFF is a separate app. */
 export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,28 +50,9 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
   const [finishing, setFinishing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pollNote, setPollNote] = useState('รอข้อความยืนยันจาก LINE');
-  const [miniUrl, setMiniUrl] = useState<string | null>(null);
   const handlers = useRef({ onAuthenticated, onError });
   const qrDialogRef = useRef<HTMLDialogElement | null>(null);
   handlers.current = { onAuthenticated, onError };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void fetch('/api/mini/config', { signal: controller.signal, credentials: 'same-origin' })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((value) => {
-        if (
-          !controller.signal.aborted &&
-          value?.enabled === true &&
-          typeof value.liffId === 'string' &&
-          /^[0-9]{5,20}-[A-Za-z0-9]{5,64}$/.test(value.liffId)
-        ) {
-          setMiniUrl('https://liff.line.me/' + value.liffId);
-        }
-      })
-      .catch(() => {});
-    return () => controller.abort();
-  }, []);
 
   const expired = Boolean(challenge && secondsLeft === 0);
   const command = challenge ? formatLineLoginCommand(challenge.code) : '';
@@ -188,22 +169,9 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
 
       {!challenge ? (
         <>
-          {miniUrl && (
-            <div className="line-direct-signin">
-              <div className="line-direct-signin-label">ใช้ LINE บนมือถือ</div>
-              <a
-                className="button primary wide line-direct-signin-button"
-                href={miniUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <MessageCircle size={18} /> เปิด MoneyFlow ผ่าน LINE <ArrowRight size={17} />
-              </a>
-              <p>เข้าใช้งานครั้งแรก ระบบจะสร้างสมุดเงินให้ทันที ไม่ต้องกรอกอีเมล</p>
-            </div>
-          )}
-          <div className="line-code-divider">
-            <span>หรือยืนยันจากแชต LINE เพื่อใช้บนคอมพิวเตอร์</span>
+          <div className="line-website-signin-note">
+            <ShieldCheck size={18} />
+            <span>ยืนยันผ่านแชต LINE แล้วกลับมาใช้งาน MoneyFlow บนเว็บไซต์นี้ได้ทันที</span>
           </div>
           <div className="auth-line-instructions">
             <div className="auth-line-step">

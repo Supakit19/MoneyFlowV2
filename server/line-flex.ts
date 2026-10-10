@@ -364,46 +364,208 @@ export function weeklyCard(week: WeeklyStatus, notice = '') {
     ['กราฟสัปดาห์', 'เหลือใช้วันละเท่าไหร่'],
   );
 }
+// Compact, image-free LINE Flex spending chart. All proportions use the total,
+// not the highest row, so the percentages and bars mean the same thing.
+const chartRow = (
+  rank: number,
+  name: string,
+  amountSatang: number,
+  totalSatang: number,
+  accent: string,
+): FlexNode => {
+  const percent = totalSatang > 0 ? Math.round((amountSatang / totalSatang) * 100) : 0;
+  const visibleWidth = amountSatang > 0 ? Math.max(2, Math.min(100, percent)) : 1;
+  return vbox(
+    [
+      hbox(
+        [
+          {
+            type: 'box',
+            layout: 'vertical',
+            width: '24px',
+            height: '24px',
+            flex: 0,
+            cornerRadius: '7px',
+            backgroundColor: P.mint,
+            justifyContent: 'center',
+            contents: [{ ...txt(String(rank), 'xs', P.green, 'bold'), align: 'center' }],
+          },
+          {
+            ...txt(name, 'sm', P.ink, 'bold'),
+            flex: 1,
+            maxLines: 2,
+            wrap: true,
+            margin: 'xs',
+          },
+          {
+            ...txt(formatBaht(amountSatang), 'sm', P.ink, 'bold'),
+            flex: 0,
+            maxLines: 1,
+            wrap: false,
+            adjustMode: 'shrink-to-fit',
+            align: 'end',
+          },
+        ],
+        'xs',
+      ),
+      hbox(
+        [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            flex: 1,
+            height: '7px',
+            backgroundColor: '#E6EEE8',
+            cornerRadius: '5px',
+            contents: [
+              {
+                type: 'box',
+                layout: 'vertical',
+                height: '7px',
+                width: visibleWidth + '%',
+                backgroundColor: amountSatang > 0 ? accent : '#E6EEE8',
+                cornerRadius: '5px',
+                contents: [],
+              },
+            ],
+          },
+          {
+            ...txt(percent + '%', 'xs', P.soft, 'bold'),
+            flex: 0,
+            maxLines: 1,
+            wrap: false,
+            align: 'end',
+          },
+        ],
+        'sm',
+      ),
+    ],
+    'sm',
+  );
+};
+
+function chartPeriodLabel(subtitle: string): string {
+  const match = /^เดือน\s+(\d{4})-(\d{2})$/.exec(subtitle);
+  if (!match) return subtitle;
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return subtitle;
+  return new Intl.DateTimeFormat('th-TH', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(Number(match[1]), month - 1, 1)));
+}
+
 export function barChartCard(
   title: string,
   subtitle: string,
   rows: { label: string; spentSatang: number }[],
   back = 'สรุปสัปดาห์',
 ) {
-  const sliced = rows.slice(0, 8);
-  const max = Math.max(1, ...sliced.map((x) => x.spentSatang));
-  const total = rows.reduce((sum, x) => sum + x.spentSatang, 0);
-  const body: FlexNode[] = [
-    subCard([eyebrow('รายจ่ายรวมในกราฟ'), txt(formatBaht(total), 'xxl', P.ink, 'bold')], P.mint),
-    ...(sliced.length
-      ? sliced.map((row, index) =>
-          vbox(
-            [
-              hbox([
-                { ...txt(row.label.slice(0, 34), 'sm', P.ink, 'bold'), flex: 1 },
-                { ...txt(formatBaht(row.spentSatang), 'sm', P.ink, 'bold'), align: 'end', flex: 1 },
-              ]),
-              meter(Math.max(0, row.spentSatang), max, index === 0 ? P.pine2 : P.green),
-            ],
-            'xs',
-          ),
-        )
-      : [txt('ยังไม่มีรายการใช้จ่ายสำหรับช่วงเวลานี้', 'sm', P.soft)]),
-  ];
-  if (rows.length > 8)
-    body.push(txt('แสดง 8 รายการแรกจากทั้งหมด ' + rows.length + ' รายการ', 'xxs', P.soft));
-  return flexMessage(
-    'MoneyFlow ' + title,
-    makeBubble(
-      title,
-      subtitle,
-      body,
-      [button('กลับไปสรุป', back), button('เช็กงบ', 'งบคงเหลือ', true)],
-      'SPENDING INSIGHT',
+  const byCategory = /หมวด/.test(title + subtitle);
+  const entries = rows
+    .filter((row) => Number.isSafeInteger(row.spentSatang) && row.spentSatang >= 0)
+    .map((row) => ({
+      label:
+        String(row.label || 'ไม่ระบุ')
+          .trim()
+          .slice(0, 70) || 'ไม่ระบุ',
+      spentSatang: row.spentSatang,
+    }));
+  const ordered = byCategory ? [...entries].sort((a, b) => b.spentSatang - a.spentSatang) : entries;
+  const total = ordered.reduce((sum, row) => sum + row.spentSatang, 0);
+  const top = byCategory ? ordered.slice(0, 5) : ordered.slice(0, 7);
+  if (byCategory && ordered.length > 5) {
+    top.push({
+      label: 'หมวดอื่น ๆ (' + (ordered.length - 5) + ')',
+      spentSatang: ordered.slice(5).reduce((sum, row) => sum + row.spentSatang, 0),
+    });
+  }
+  const colors = ['#149A70', '#249D82', '#47A58C', '#6FAE97', '#8BBEA7', '#A3CAB4', '#B3CFBF'];
+  const period = chartPeriodLabel(subtitle);
+  const label = byCategory ? 'รายจ่ายตามหมวด' : 'รายจ่ายรายวัน';
+  const header: FlexNode = {
+    ...vbox(
+      [
+        hbox([
+          { ...txt('●  moneyflow.', 'sm', P.lime, 'bold'), flex: 1 },
+          { ...txt('สรุปการเงิน', 'xxs', '#B5D7C3', 'bold'), flex: 0, align: 'end' },
+        ]),
+        txt(label, 'lg', P.paper, 'bold'),
+        txt(period, 'xs', '#C7E3D4'),
+      ],
+      'sm',
     ),
-    ['สรุปวันนี้', 'กราฟเดือนนี้', 'กราฟสัปดาห์'],
+    paddingAll: '18px',
+  };
+  const summary: FlexNode = subCard(
+    [
+      hbox(
+        [
+          { ...eyebrow('ยอดรวมรายจ่ายที่แสดง'), flex: 1 },
+          pill(ordered.length + (byCategory ? ' หมวด' : ' วัน')),
+        ],
+        'sm',
+      ),
+      txt(formatBaht(total), 'xxl', P.pine, 'bold'),
+    ],
+    P.mint,
   );
+  const body: FlexNode[] = [summary];
+  if (!ordered.length || total === 0) {
+    body.push(
+      subCard(
+        [
+          txt('ยังไม่มีรายจ่ายในช่วงนี้', 'md', P.ink, 'bold'),
+          txt('เมื่อมีรายการบันทึก ระบบจะแสดงยอดและสัดส่วนตรงนี้', 'xs', P.soft),
+        ],
+        P.canvas,
+      ),
+    );
+  } else {
+    body.push(
+      hbox([
+        { ...eyebrow(byCategory ? 'ใช้จ่ายในหมวดไหนบ้าง' : 'ใช้จ่ายวันไหนบ้าง'), flex: 1 },
+        { ...eyebrow('สัดส่วนจากยอดรวม'), flex: 0, align: 'end' },
+      ]),
+    );
+    top.forEach((row, index) => {
+      body.push(chartRow(index + 1, row.label, row.spentSatang, total, colors[index % colors.length]));
+      if (index < top.length - 1) {
+        body.push({ type: 'separator', color: '#F0F4F0', margin: 'xs' });
+      }
+    });
+  }
+  const bubble: FlexNode = {
+    type: 'bubble',
+    size: 'mega',
+    styles: {
+      header: { backgroundColor: P.pine },
+      body: { backgroundColor: P.paper },
+      footer: { backgroundColor: P.paper, separator: true, separatorColor: P.line },
+    },
+    header,
+    body: { ...vbox(body, 'lg'), paddingAll: '18px' },
+    footer: {
+      ...vbox([
+        hbox(
+          [
+            button(byCategory ? 'สรุปเดือนนี้' : 'สรุปสัปดาห์', back, true),
+            button('งบคงเหลือ', 'งบคงเหลือ'),
+          ],
+          'sm',
+        ),
+      ]),
+      paddingAll: '12px',
+    },
+  };
+  return flexMessage('MoneyFlow ' + title + ' ' + period + ' รวม ' + formatBaht(total), bubble, [
+    'สรุปวันนี้',
+    'กราฟเดือนนี้',
+    'กราฟสัปดาห์',
+  ]);
 }
+
 export const simpleHelpCard = (miniUrl?: string) => {
   const body: FlexNode[] = [
     subCard(

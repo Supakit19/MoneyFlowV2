@@ -114,7 +114,7 @@ export async function monthStatus(db:Sql,userId:string,now:Date=new Date()){
 export async function monthCategoryChart(db:Sql,userId:string,now:Date=new Date()){
  const month=toBkkDate(now).slice(0,7);
  const rows=await db.unsafe(
-  "SELECT COALESCE(c.name,'อื่นๆ') label,SUM(t.amount_satang)::text total FROM transactions t LEFT JOIN categories c ON c.id=t.category_id AND c.user_id=t.user_id WHERE t.user_id=$1 AND t.kind='expense' AND to_char(t.transacted_at AT TIME ZONE 'Asia/Bangkok','YYYY-MM')=$2 GROUP BY COALESCE(c.name,'อื่นๆ') ORDER BY SUM(t.amount_satang) DESC LIMIT 6",
+  "SELECT COALESCE(c.name,'อื่นๆ') label,SUM(t.amount_satang)::text total FROM transactions t LEFT JOIN categories c ON c.id=t.category_id AND c.user_id=t.user_id WHERE t.user_id=$1 AND t.kind='expense' AND to_char(t.transacted_at AT TIME ZONE 'Asia/Bangkok','YYYY-MM')=$2 GROUP BY COALESCE(c.name,'อื่นๆ') ORDER BY SUM(t.amount_satang) DESC",
   [userId,month]);
  return {month,categories:rows.map(r=>({label:r.label as string,spentSatang:Number(r.total)}))};
 }

@@ -50,6 +50,35 @@ const data = [
       week.daily.map((d) => ({ label: d.label, spentSatang: d.spentSatang })),
     ),
   ],
+  [
+    'category-chart',
+    barChartCard(
+      'รายจ่ายตามหมวดหมู่',
+      'เดือน 2026-10',
+      [
+        { label: 'อาหาร', spentSatang: 18000 },
+        { label: 'เดินทาง', spentSatang: 9000 },
+        { label: 'ช้อปปิ้งออนไลน์', spentSatang: 4020 },
+        { label: 'ที่พัก', spentSatang: 2000 },
+        { label: 'สุขภาพ', spentSatang: 1200 },
+        { label: 'อื่น ๆ', spentSatang: 800 },
+      ],
+      'สรุปเดือนนี้',
+    ),
+  ],
+  [
+    'category-chart-long',
+    barChartCard(
+      'รายจ่ายตามหมวดหมู่',
+      'เดือน 2026-10',
+      Array.from({ length: 15 }, (_, index) => ({
+        label: index === 0 ? 'ค่าเดินทางและบริการขนส่งระหว่างจังหวัด' : 'หมวด ' + index,
+        spentSatang: 1500000 - index * 8000,
+      })),
+      'สรุปเดือนนี้',
+    ),
+  ],
+  ['category-chart-empty', barChartCard('รายจ่ายตามหมวดหมู่', 'เดือน 2026-10', [])],
   ['help', simpleHelpCard()],
   ['bank-income', bankReceiptCard('income', 2000, 'KBank Live')],
   ['bank-expense', bankReceiptCard('expense', 3520, 'Krungthai Connext')],

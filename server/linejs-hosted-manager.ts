@@ -12,12 +12,14 @@ export type HostedConfig = {
   enabled: boolean;
   senderMid: string | null;
   accountId: string | null;
+  extraSenderMids?: string[];
 };
 type Running = {
   child: ChildProcess | null;
   token: string;
   mode: HostedMode;
   mid: string | null;
+  mids: string[];
   desired: boolean;
   state: State;
   qrUrl: string;
@@ -88,12 +90,13 @@ export class HostedLineJsManager {
     if (!/^mfbank_[0-9a-f]{64}$/.test(token)) throw Error('LINEJS bridge token invalid');
     return token;
   }
-  private newSession(token: string, mode: HostedMode, mid: string | null): Running {
+  private newSession(token: string, mode: HostedMode, mid: string | null, mids: string[]): Running {
     return {
       child: null,
       token,
       mode,
       mid,
+      mids,
       desired: true,
       state: 'stopped',
       qrUrl: '',
@@ -155,6 +158,7 @@ export class HostedLineJsManager {
         LINEJS_SESSION_ENCRYPTION_KEY: process.env.LINEJS_SESSION_ENCRYPTION_KEY || '',
         LINEJS_DISCOVER_SENDER: r.mode === 'discovery' ? '1' : '0',
         LINEJS_BANK_SENDER_MID: r.mid || '',
+        LINEJS_BANK_SENDER_MIDS: r.mids.join(','),
         MONEYFLOW_BANK_INGEST_TOKEN: r.token,
         MONEYFLOW_BANK_API: 'http://127.0.0.1:' + (process.env.APP_PORT || '3011'),
       },
@@ -235,14 +239,27 @@ export class HostedLineJsManager {
     if (!this.available) throw Error(this.reason);
     if (!uuid(conf.userId)) throw Error('Invalid user identifier');
     const token = this.decryptToken(conf.userId, conf.tokenEncrypted);
-    const mode: HostedMode =
-      conf.enabled && conf.accountId && validMid(conf.senderMid) ? 'listening' : 'discovery';
+    const primary = conf.accountId && validMid(conf.senderMid) ? [conf.senderMid!.toLowerCase()] : [];
+    const extras = (conf.extraSenderMids || []).filter((x) => validMid(x)).map((x) => x.toLowerCase());
+    const mids = [...new Set([...primary, ...extras])].sort();
+    const mode: HostedMode = conf.enabled && mids.length ? 'listening' : 'discovery';
     let r = this.sessions.get(conf.userId);
-    if (r?.child && r.mode === mode && r.token === token && r.mid === conf.senderMid) return;
+    if (
+      r?.child &&
+      r.mode === mode &&
+      r.token === token &&
+      JSON.stringify(r.mids) === JSON.stringify(mids)
+    )
+      return;
     if (r) await this.stop(conf.userId);
     if ([...this.sessions.values()].filter((x) => !!x.child).length >= this.maxWorkers)
       throw Error('ใช้งาน LINEJS ครบ ' + this.maxWorkers + ' บัญชีพร้อมกันแล้ว');
-    r = this.newSession(token, mode, mode === 'listening' ? conf.senderMid : null);
+    r = this.newSession(
+      token,
+      mode,
+      mode === 'listening' ? conf.senderMid : null,
+      mode === 'listening' ? mids : [],
+    );
     this.sessions.set(conf.userId, r);
     this.launch(conf.userId, r);
   }

@@ -16,6 +16,27 @@ No automatic migration or deletion of the owner's personal session is performed.
 
 **LINEJS is unofficial.** It may break after LINE updates and may carry account restrictions or security risks. Do not market it as bank-approved. Always provide a way to disconnect and audit imported transactions.
 
+## Two banks on one LINE account (KBank + Krungthai)
+
+MoneyFlow accepts **KBank Live** and **Krungthai Connext** as separate bank
+notification sources without requiring two LINE logins or two Worker slots.
+
+1. Create separate MoneyFlow accounts for KBank and Krungthai.
+2. Under **เชื่อมธนาคาร**, configure the first bank and its verified Sender MID.
+3. In **แชตธนาคารเพิ่มเติม**, choose Krungthai Connext, its MoneyFlow account,
+   and the verified MID of that bank's LINE chat.
+4. Save the configuration. Each enabled bank can be paused independently.
+5. Only messages with an exact allowlisted MID are accepted. KBank's
+   undirected-expense fallback does **not** apply to Krungthai. Krungthai alerts
+   must explicitly show income or expense and an unambiguous amount.
+6. Older bank notifications are not automatically backfilled to avoid duplicates.
+   Wait for a new alert, then verify it against your banking app.
+
+**Safety:** This is a conservative first implementation tested with synthetic
+notification formats. Actual Krungthai Connext messages vary. Before treating
+it as production-grade, verify a real alert with all names, account identifiers,
+references and balances hidden. MoneyFlow must never claim the bank's authority.
+
 ## Setup for each MoneyFlow customer
 
 1. Register/sign into MoneyFlow with their own account.

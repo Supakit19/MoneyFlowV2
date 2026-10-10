@@ -35,6 +35,11 @@ process.umask(0o077);
 const enabled = process.env.LINEJS_WORKER_ENABLED === '1';
 const token = (process.env.MONEYFLOW_BANK_INGEST_TOKEN || '').trim();
 const senderMid = (process.env.LINEJS_BANK_SENDER_MID || '').trim().toLowerCase();
+const configuredMids = (process.env.LINEJS_BANK_SENDER_MIDS || '')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter((s) => /^u[0-9a-f]{32}$/.test(s));
+const allowedMids = new Set([senderMid, ...configuredMids].filter((s) => /^u[0-9a-f]{32}$/.test(s)));
 const apiUrl = (process.env.MONEYFLOW_BANK_API || 'http://127.0.0.1:3011').replace(/\/+$/, '');
 const discovery = process.env.LINEJS_DISCOVER_SENDER === '1';
 
@@ -55,7 +60,7 @@ if (!/^mfbank_[0-9a-f]{64}$/.test(token)) {
   console.error('Missing or invalid MONEYFLOW_BANK_INGEST_TOKEN. Create a token from LINE & AI.');
   process.exit(1);
 }
-if (!discovery && !/^u[0-9a-f]{32}$/.test(senderMid)) {
+if (!discovery && !allowedMids.size) {
   console.error(
     'LINEJS_BANK_SENDER_MID must be the exact u + 32 characters MID from the real bank chat.',
   );
@@ -428,7 +433,22 @@ function handleBankMessage(m: any) {
       } else diagnostics.dropped++;
       return;
     }
-    if (from !== senderMid) return;
+    if (!allowedMids.has(from)) {
+      // The currently connected LINE account may use more than one bank chat.
+      // Discover possible extra bank MID values for explicit human verification,
+      // but never forward unapproved senders to the finance API.
+      if (
+        hosted &&
+        combinedText &&
+        isPotentialBankNotification(combinedText) &&
+        !lastDiscovery.has(from)
+      ) {
+        lastDiscovery.add(from);
+        if (lastDiscovery.size > 80) lastDiscovery = new Set([from]);
+        if (process.send) process.send({ type: 'discovery', mid: from });
+      }
+      return;
+    }
     reportSeen(id);
     if (recentlyForwarded.has(id) || inFlight.has(id)) return;
     if (!combinedText || !isActionableBankAlert(combinedText)) {
@@ -456,7 +476,7 @@ client.on('message', handleBankMessage);
 // an alert missed by the unreliable unofficial PUSH connection.
 let historyBusy = false;
 async function pollBankHistory() {
-  if (discovery || historyBusy) return;
+  if (discovery || historyBusy || !/^u[0-9a-f]{32}$/.test(senderMid)) return;
   historyBusy = true;
   historyStatus.checks++;
   historyStatus.lastCheckedAt = new Date().toISOString();
@@ -793,6 +813,46 @@ async function pollBankHistory() {
     if (process.send) process.send({ type: 'history', ...safe });
   }
 }
+
+// Read-only fallback for secondary bank chats. This never loads messages from
+// unrelated LINE chats and never replays messages from before this Worker began.
+let extraHistoryBusy = false;
+async function pollExtraBankHistory() {
+  const secondary = [...allowedMids].filter((mid) => mid !== senderMid);
+  if (discovery || extraHistoryBusy || !secondary.length) return;
+  extraHistoryBusy = true;
+  try {
+    const boxes = await client.base.talk.getMessageBoxes({ messageBoxListRequest: {} });
+    const now = Date.now();
+    const eligibleAge = Math.min(HISTORY_BACKFILL_MS, Math.max(0, now - listenerStartedAt) + 2000);
+    for (const mid of secondary) {
+      const box = boxes.messageBoxes?.find((entry: any) => String(entry.id || '').toLowerCase() === mid);
+      if (!box?.lastDeliveredMessageId) continue;
+      const fetched = await client.base.talk.getPreviousMessagesV2WithRequest({
+        request: {
+          messageBoxId: box.id,
+          endMessageId: {
+            messageId: box.lastDeliveredMessageId.messageId,
+            deliveredTime: box.lastDeliveredMessageId.deliveredTime,
+          },
+          messagesCount: 12,
+        },
+      });
+      const recent = recentBankMessages(Array.isArray(fetched) ? fetched : [], mid, now, eligibleAge);
+      for (const raw of recent)
+        handleBankMessage({
+          raw,
+          from: { id: raw.from },
+          isMyMessage: false,
+          isEdited: false,
+        });
+    }
+  } catch {
+    console.warn('[LINEJS] Secondary bank history fallback failed (no content logged).');
+  } finally {
+    extraHistoryBusy = false;
+  }
+}
 const listenerAbort = new AbortController();
 if (!discovery) {
   let checkingStatus = false;
@@ -814,6 +874,12 @@ if (!discovery) {
 }
 client.listen({ talk: true, signal: listenerAbort.signal });
 if (!discovery) {
-  setTimeout(() => void pollBankHistory(), 7000);
-  setInterval(() => void pollBankHistory(), 60_000);
+  setTimeout(() => {
+    void pollBankHistory();
+    void pollExtraBankHistory();
+  }, 7000);
+  setInterval(() => {
+    void pollBankHistory();
+    void pollExtraBankHistory();
+  }, 60_000);
 }

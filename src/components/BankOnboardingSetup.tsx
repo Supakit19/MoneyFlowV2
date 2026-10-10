@@ -18,7 +18,7 @@ import { api } from '../lib/api';
 import type { Account } from '../lib/finance';
 import './BankOnboardingSetup.css';
 
-type Bank = 'kbank' | 'scb' | 'other';
+type Bank = 'kbank' | 'ktb' | 'scb' | 'other';
 type Settings = {
   enabled: boolean;
   bank: Bank;
@@ -54,6 +54,7 @@ type Props = {
 };
 const banks: { id: Bank; name: string }[] = [
   { id: 'kbank', name: 'กสิกรไทย · KBank Live' },
+  { id: 'ktb', name: 'กรุงไทย · Krungthai Connext' },
   { id: 'scb', name: 'ไทยพาณิชย์ · SCB Connect (ทดลอง)' },
   { id: 'other', name: 'ธนาคารอื่น (ทดลอง)' },
 ];

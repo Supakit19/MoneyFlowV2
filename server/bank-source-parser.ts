@@ -137,6 +137,41 @@ function signedWithoutLabel(
   return found[0];
 }
 
+/**
+ * Krungthai Connext sends alerts such as "เงินเข้า 25,000 บาท"
+ * and "เงินออก 350 บาท". Never infer a debit from an unsigned amount.
+ * The ingestion API separately verifies the exact LINE Sender MID.
+ */
+export function parseKrungthaiConnext(text: string): ParsedBankAlert | null {
+  const value = normalize(text, 3500);
+  if (!value || block.test(value) || ownTransfer.test(value)) return null;
+  const matches: { kind: Direction; amountSatang: number }[] = [];
+  const pattern =
+    /(?:^|\n)\s*(?:เงิน\s*(เข้า|ออก)|รับเงิน|จ่ายเงิน)\s*[:：]?\s*(?:฿\s*)?(\d{1,9}(?:,\d{3})*(?:\.\d{1,2})?)\s*(?:บาท|฿|THB)/gim;
+  for (const line of value.split(/\r?\n/)) {
+    if (balanceLabel.test(line)) continue;
+    for (const m of line.matchAll(pattern)) {
+      const amountSatang = toSatang(m[2]);
+      if (!amountSatang) continue;
+      const kind: Direction = m[1] === 'เข้า' || /รับเงิน/.test(m[0]) ? 'income' : 'expense';
+      matches.push({ kind, amountSatang });
+    }
+  }
+  if (matches.length !== 1) return null;
+  if (concreteIn.test(value) && concreteOut.test(value)) return null;
+  if (matches[0].kind === 'income' && concreteOut.test(value)) return null;
+  if (matches[0].kind === 'expense' && concreteIn.test(value)) return null;
+  return {
+    kind: matches[0].kind,
+    amountSatang: matches[0].amountSatang,
+    merchant: (matches[0].kind === 'income' ? 'เงินเข้าผ่าน ' : 'เงินออกผ่าน ') + 'Krungthai Connext',
+    bank: 'Krungthai Connext',
+    needsReview: false,
+    transferAutoCandidate: false,
+    reason: null,
+  };
+}
+
 export function parseBankAlertFromSources(
   sources: BankMessageSources,
   bank: BankChannel,
@@ -146,6 +181,19 @@ export function parseBankAlertFromSources(
   const alt = normalize(sources.altText, 400);
   const raw = normalize(sources.rawText, 500);
   if ((!primary && !alt && !raw) || block.test([primary, alt, raw].join('\n'))) return null;
+  // Krungthai messages use explicit direction labels. KBank fallback is
+  // intentionally NOT applied to this bank.
+  if (bank === 'ktb') {
+    const results = [primary, alt, raw]
+      .map(parseKrungthaiConnext)
+      .filter((x): x is ParsedBankAlert => x !== null);
+    if (
+      !results.length ||
+      results.some((x) => x.kind !== results[0].kind || x.amountSatang !== results[0].amountSatang)
+    )
+      return null;
+    return results[0];
+  }
 
   // Check *all* signed transaction amounts before accepting the first
   // labelled one. A single Flex card with both +20 and -50 is ambiguous.

@@ -14,11 +14,12 @@ export type ParsedBankAlert = {
   reason: string | null;
 };
 
-export const BANK_CHANNELS = ['kbank', 'scb', 'other'] as const;
+export const BANK_CHANNELS = ['kbank', 'ktb', 'scb', 'other'] as const;
 export type BankChannel = (typeof BANK_CHANNELS)[number];
 
 const BANK_NAMES: Record<BankChannel, string> = {
   kbank: 'KBank Live',
+  ktb: 'Krungthai Connext',
   scb: 'SCB Connect',
   other: 'แจ้งเตือนธนาคาร',
 };

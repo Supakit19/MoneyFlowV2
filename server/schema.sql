@@ -129,6 +129,13 @@ ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_mode TEXT NO
   CHECK (connector_mode IN ('local','hosted'));
 ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_token_encrypted TEXT;
 ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS connector_run_enabled BOOLEAN NOT NULL DEFAULT false;
+-- Multiple LINE bank chats per account. Existing primary bank stays untouched.
+-- Extra sources contain only verified MID/account routing, never messages.
+ALTER TABLE bank_linejs_settings ADD COLUMN IF NOT EXISTS extra_sources JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE bank_linejs_settings DROP CONSTRAINT IF EXISTS bank_linejs_settings_bank_check;
+ALTER TABLE bank_linejs_settings ADD CONSTRAINT bank_linejs_settings_bank_check
+  CHECK (bank IN ('kbank','ktb','scb','other'));
+
 CREATE INDEX IF NOT EXISTS idx_linejs_hosted_resume ON bank_linejs_settings(updated_at DESC)
   WHERE connector_mode='hosted' AND connector_run_enabled=true;
 -- Retire legacy auto-save mode flags; keep the LINE OA push preference

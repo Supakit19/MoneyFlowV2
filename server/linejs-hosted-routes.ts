@@ -9,6 +9,7 @@ import {
   type HostedLineJsManager,
 } from './linejs-hosted-manager.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
+import { extraBankSources } from './linejs-bank-sources.ts';
 
 type Guard = (fn: (ctx: any, userId: string) => Promise<unknown>) => (ctx: any) => Promise<unknown>;
 type Publish = PublishFn;
@@ -42,6 +43,9 @@ function workerConfig(row: any): HostedConfig {
     enabled: row.enabled === true,
     senderMid: row.sender_mid,
     accountId: row.account_id,
+    extraSenderMids: extraBankSources(row)
+      .filter((x) => x.enabled)
+      .map((x) => x.senderMid),
   };
 }
 
@@ -122,6 +126,9 @@ export function createHostedLineJsRoutes(
             enabled: false,
             senderMid: old.sender_mid,
             accountId: old.account_id,
+            extraSenderMids: extraBankSources(old)
+              .filter((x) => x.enabled)
+              .map((x) => x.senderMid),
           });
         } catch {
           await db`UPDATE bank_linejs_settings SET connector_run_enabled=false WHERE user_id=${userId}`;

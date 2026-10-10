@@ -19,6 +19,7 @@ import { runDailyDigest } from './daily-digest.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
 import { hostedLineJsManager } from './linejs-hosted-manager.ts';
+import { extraBankSources } from './linejs-bank-sources.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
 
 let publishFinance: PublishFn = () => {};
@@ -654,7 +655,7 @@ console.log('MoneyFlow API http://127.0.0.1:' + port);
 void (async () => {
   if (!hostedLineJsManager.available) return;
   const rows = await sql`
-    SELECT user_id,connector_token_encrypted,enabled,sender_mid,account_id
+    SELECT user_id,connector_token_encrypted,enabled,sender_mid,account_id,extra_sources
     FROM bank_linejs_settings
     WHERE connector_mode='hosted' AND connector_run_enabled=true
       AND connector_token_encrypted IS NOT NULL
@@ -667,6 +668,9 @@ void (async () => {
       enabled: row.enabled === true,
       senderMid: row.sender_mid,
       accountId: row.account_id,
+      extraSenderMids: extraBankSources(row)
+        .filter((x) => x.enabled)
+        .map((x) => x.senderMid),
     })),
   );
 })().catch(() => {

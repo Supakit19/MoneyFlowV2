@@ -7,16 +7,25 @@ import {
   Landmark,
   RefreshCw,
   ShieldCheck,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import LineJsConnectorAgent from './LineJsConnectorAgent';
 import './LineJsBankAutomation.css';
 
+type ExtraBankSource = {
+  bank: 'kbank' | 'ktb' | 'scb' | 'other';
+  senderMid: string;
+  accountId: string;
+  enabled: boolean;
+};
 type Options = {
+  extraSources: ExtraBankSource[];
   enabled: boolean;
   pushLine: boolean;
-  bank: 'kbank' | 'scb' | 'other';
+  bank: ExtraBankSource['bank'];
   senderMid: string;
   accountId: string;
   tokenConfigured: boolean;
@@ -35,6 +44,7 @@ const EMPTY: Options = {
   enabled: false,
   pushLine: false,
   bank: 'kbank',
+  extraSources: [],
   senderMid: '',
   accountId: '',
   tokenConfigured: false,
@@ -42,6 +52,7 @@ const EMPTY: Options = {
 };
 const banks: { value: Options['bank']; label: string }[] = [
   { value: 'kbank', label: 'KBank Live · กสิกรไทย' },
+  { value: 'ktb', label: 'Krungthai Connext · กรุงไทย' },
   { value: 'scb', label: 'SCB Connect · ไทยพาณิชย์' },
   { value: 'other', label: 'ธนาคารอื่น (ทดลอง)' },
 ];
@@ -62,6 +73,10 @@ export default function LineJsBankAutomation() {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [newBank, setNewBank] = useState<ExtraBankSource['bank']>('ktb');
+  const [newSenderMid, setNewSenderMid] = useState('');
+  const [newAccountId, setNewAccountId] = useState('');
+  const [verifiedExtraMid, setVerifiedExtraMid] = useState(false);
 
   async function load() {
     if (demoMode) return;
@@ -111,6 +126,7 @@ export default function LineJsBankAutomation() {
         enabled: next.enabled,
         pushLine: next.pushLine,
         bank: next.bank,
+        extraSources: next.extraSources,
         senderMid: next.senderMid.trim(),
         accountId: next.accountId,
       });
@@ -124,9 +140,41 @@ export default function LineJsBankAutomation() {
       setSaving(false);
     }
   }
+  async function addExtra() {
+    if (saving || demoMode) return;
+    if (!/^u[0-9a-f]{32}$/i.test(newSenderMid) || !newAccountId || !verifiedExtraMid) {
+      notify('กรุณาตรวจแชตธนาคาร เลือกบัญชีเงิน และยืนยัน Sender MID ก่อนเพิ่ม', 'warning');
+      return;
+    }
+    if (newBank === options.bank && options.senderMid) {
+      notify('ธนาคารนี้เป็นแหล่งหลักอยู่แล้ว กรุณาเลือกธนาคารอื่น', 'warning');
+      return;
+    }
+    if (
+      options.extraSources.some(
+        (source) => source.bank === newBank || source.senderMid === newSenderMid.toLowerCase(),
+      )
+    ) {
+      notify('ธนาคารหรือ Sender MID นี้ถูกเพิ่มไว้แล้ว', 'warning');
+      return;
+    }
+    await save({
+      ...options,
+      extraSources: [
+        ...options.extraSources,
+        { bank: newBank, senderMid: newSenderMid.toLowerCase(), accountId: newAccountId, enabled: true },
+      ],
+    });
+    setNewSenderMid('');
+    setVerifiedExtraMid(false);
+  }
   async function changeFlow(nextEnabled: boolean) {
     if (saving || demoMode) return;
-    if (nextEnabled && (!options.tokenConfigured || !options.senderMid || !options.accountId)) {
+    if (
+      nextEnabled &&
+      (!options.tokenConfigured ||
+        ((!options.senderMid || !options.accountId) && !options.extraSources.some((x) => x.enabled)))
+    ) {
       notify('เชื่อม Worker เลือกบัญชี และระบุ Sender MID ก่อนเปิด Flow', 'warning');
       return;
     }
@@ -155,7 +203,7 @@ export default function LineJsBankAutomation() {
               <span /> LINEJS · ธนาคาร
             </div>
             <h3 id="bank-linejs-title">รับรายการเงินเข้า–ออกอัตโนมัติ</h3>
-            <p>อ่านยอดจากการ์ด Flex และข้อความ KBank Live โดยไม่ต้องกดยืนยัน</p>
+            <p>เชื่อม KBank Live และ Krungthai Connext ผ่าน LINE เดียว เลือกบัญชีที่บันทึกแยกกันได้</p>
           </div>
         </div>
         <span className={'mf-bank-state ' + (options.enabled ? 'is-on' : '')}>
@@ -166,8 +214,14 @@ export default function LineJsBankAutomation() {
       <LineJsConnectorAgent
         onConnected={load}
         onCandidate={(mid) => {
-          update('senderMid', mid);
-          notify('พบ Sender MID กรุณาตรวจสอบว่าเป็นธนาคารจริงแล้วกดบันทึกการตั้งค่า', 'info');
+          if (options.senderMid) {
+            setNewSenderMid(mid);
+            setVerifiedExtraMid(false);
+            notify('พบ Sender MID อีกแชต กรุณาตรวจธนาคารและเลือกบัญชีปลายทางก่อนเพิ่ม', 'info');
+          } else {
+            update('senderMid', mid);
+            notify('พบ Sender MID กรุณาตรวจสอบว่าเป็นธนาคารจริงแล้วกดบันทึกการตั้งค่า', 'info');
+          }
         }}
       />
 
@@ -176,7 +230,7 @@ export default function LineJsBankAutomation() {
           <label className="mf-bank-toggle">
             <span className="mf-bank-toggle-copy">
               <strong>เปิดรับแจ้งเตือนและบันทึกเงินอัตโนมัติ</strong>
-              <small>ต้องเปิด LINEJS Local Agent บน Mac ด้วย</small>
+              <small>ใช้ LINEJS Hosted บน VPS ได้ ไม่ต้องเปิด Mac ค้างไว้</small>
             </span>
             <input
               type="checkbox"
@@ -254,6 +308,138 @@ export default function LineJsBankAutomation() {
               </select>
             </label>
           </div>
+          <div className="mf-bank-extras">
+            <strong>แชตธนาคารเพิ่มเติม · LINE เดียวกัน</strong>
+            <p>
+              แยก Sender MID และบัญชีเงินของกสิกร/กรุงไทย ไม่ต้องสแกน QR อีกครั้ง —
+              ควรสร้างบัญชีกรุงไทยในหน้า “บัญชีเงิน” ก่อน
+            </p>
+            {options.extraSources.map((source) => (
+              <div className="mf-bank-extra-item" key={source.bank}>
+                <div>
+                  <b>{banks.find((bank) => bank.value === source.bank)?.label || source.bank}</b>
+                  <small>
+                    {live.accounts.find((account) => account.id === source.accountId)?.name ||
+                      'บัญชีเดิมถูกลบ'}
+                    {' · '}Sender MID ตรวจสอบแล้ว
+                  </small>
+                </div>
+                <label className="mf-bank-extra-toggle">
+                  <input
+                    type="checkbox"
+                    checked={source.enabled}
+                    disabled={saving || demoMode}
+                    aria-label={'เปิดรับแจ้งเตือน ' + source.bank}
+                    onChange={(event) =>
+                      void save({
+                        ...options,
+                        extraSources: options.extraSources.map((x) =>
+                          x.bank === source.bank ? { ...x, enabled: event.target.checked } : x,
+                        ),
+                      })
+                    }
+                  />
+                  เปิดใช้
+                </label>
+                <button
+                  type="button"
+                  className="mf-bank-extra-delete"
+                  disabled={saving || demoMode}
+                  aria-label={'ลบแชต ' + source.bank}
+                  onClick={() =>
+                    void (async () => {
+                      const yes = await askConfirm({
+                        title: 'นำธนาคารนี้ออกจาก LINEJS?',
+                        description: 'หยุดรับรายการใหม่จากแชตนี้ รายการการเงินเดิมจะไม่ถูกลบ',
+                        confirmLabel: 'นำออก',
+                        tone: 'danger',
+                      });
+                      if (yes)
+                        await save({
+                          ...options,
+                          extraSources: options.extraSources.filter((x) => x.bank !== source.bank),
+                        });
+                    })()
+                  }
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            ))}
+            {options.extraSources.length < 3 && (
+              <div className="mf-bank-extra-form">
+                <div className="mf-bank-fields">
+                  <label>
+                    เพิ่มธนาคาร
+                    <select
+                      value={newBank}
+                      disabled={saving || demoMode}
+                      onChange={(e) => setNewBank(e.target.value as ExtraBankSource['bank'])}
+                    >
+                      {banks.map((bank) => (
+                        <option value={bank.value} key={bank.value}>
+                          {bank.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    บันทึกเข้าบัญชี
+                    <select
+                      value={newAccountId}
+                      disabled={saving || demoMode}
+                      onChange={(e) => setNewAccountId(e.target.value)}
+                    >
+                      <option value="">เลือกบัญชี</option>
+                      {live.accounts.map((account) => (
+                        <option value={account.id} key={account.id}>
+                          {account.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <label className="mf-bank-mid-label">
+                  Sender MID ของแชตธนาคารที่สอง
+                  <input
+                    value={newSenderMid}
+                    placeholder="u ตามด้วยรหัสผู้ส่ง 32 ตัว"
+                    maxLength={33}
+                    disabled={saving || demoMode}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setNewSenderMid(e.target.value.trim());
+                      setVerifiedExtraMid(false);
+                    }}
+                  />
+                  <small>
+                    เมื่อ LINEJS พบแจ้งเตือนธนาคารใหม่ กด “เลือกธนาคารนี้” ด้านบนเพื่อเติม MID
+                  </small>
+                </label>
+                <label className="mf-bank-extra-verify">
+                  <input
+                    type="checkbox"
+                    checked={verifiedExtraMid}
+                    disabled={saving || demoMode}
+                    onChange={(e) => setVerifiedExtraMid(e.target.checked)}
+                  />
+                  ตรวจแล้วว่า Sender MID นี้มาจากแชตธนาคารที่เลือกจริง
+                </label>
+                <button
+                  type="button"
+                  className="button primary"
+                  disabled={saving || demoMode}
+                  onClick={() => void addExtra()}
+                >
+                  <Plus size={16} /> เพิ่มธนาคารนี้
+                </button>
+                <small>
+                  สำหรับ Krungthai Connext จะอ่านเฉพาะข้อความที่ระบุ “เงินเข้า” หรือ “เงินออก”
+                  พร้อมยอดชัดเจน
+                </small>
+              </div>
+            )}
+          </div>
           <label className="mf-bank-mid-label">
             Sender MID ของแชตธนาคาร
             <input
@@ -312,11 +498,13 @@ export default function LineJsBankAutomation() {
                 <div className="mf-bank-event-description">
                   <strong>
                     {item.kind === 'income' ? 'เงินเข้าผ่าน ' : 'เงินออกผ่าน '}
-                    {item.bank === 'kbank'
+                    {item.bank === 'kbank' || item.bank === 'KBank Live'
                       ? 'KBank Live'
-                      : item.bank === 'scb'
-                        ? 'SCB Connect'
-                        : 'ธนาคาร'}
+                      : item.bank === 'ktb' || item.bank === 'Krungthai Connext'
+                        ? 'Krungthai Connext'
+                        : item.bank === 'scb' || item.bank === 'SCB Connect'
+                          ? 'SCB Connect'
+                          : 'ธนาคาร'}
                   </strong>
                   <small>
                     {new Date(item.created_at).toLocaleString('th-TH')} · บันทึกแล้ว

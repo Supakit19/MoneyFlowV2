@@ -24,9 +24,11 @@ export function bankReceiptText(receipt: BankReceipt): string {
   const source =
     receipt.bank === 'KBank Live'
       ? 'KBank Live'
-      : receipt.bank === 'SCB Connect'
-        ? 'SCB Connect'
-        : 'ธนาคาร';
+      : receipt.bank === 'Krungthai Connext'
+        ? 'Krungthai Connext'
+        : receipt.bank === 'SCB Connect'
+          ? 'SCB Connect'
+          : 'ธนาคาร';
   return `${icon} MoneyFlow บันทึก${label}แล้ว\n${sign}฿${amount} · ${source}\nดูรายละเอียดได้ใน MoneyFlow`;
 }
 
@@ -95,7 +97,14 @@ export async function pushUnrecognizedBankAlert(
   bank: string,
 ): Promise<boolean> {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  const source = bank === 'kbank' ? 'KBank Live' : bank === 'scb' ? 'SCB Connect' : 'ธนาคาร';
+  const source =
+    bank === 'kbank'
+      ? 'KBank Live'
+      : bank === 'ktb'
+        ? 'Krungthai Connext'
+        : bank === 'scb'
+          ? 'SCB Connect'
+          : 'ธนาคาร';
   let successful = false;
   try {
     if (token) {

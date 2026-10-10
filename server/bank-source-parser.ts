@@ -147,13 +147,16 @@ export function parseKrungthaiConnext(text: string): ParsedBankAlert | null {
   if (!value || block.test(value) || ownTransfer.test(value)) return null;
   const matches: { kind: Direction; amountSatang: number }[] = [];
   const pattern =
-    /(?:^|\n)\s*(?:เงิน\s*(เข้า|ออก)|รับเงิน|จ่ายเงิน)\s*[:：]?\s*(?:฿\s*)?(\d{1,9}(?:,\d{3})*(?:\.\d{1,2})?)\s*(?:บาท|฿|THB)/gim;
+    /(?:^|\n)\s*(?:เงิน\s*(เข้า|ออก)|รับเงิน|จ่ายเงิน)\s*[:：]?\s*(?:฿\s*)?([+-]?\d{1,9}(?:,\d{3})*(?:\.\d{1,2})?)\s*(?:บาท|฿|THB)/gim;
   for (const line of value.split(/\r?\n/)) {
     if (balanceLabel.test(line)) continue;
     for (const m of line.matchAll(pattern)) {
       const amountSatang = toSatang(m[2]);
       if (!amountSatang) continue;
       const kind: Direction = m[1] === 'เข้า' || /รับเงิน/.test(m[0]) ? 'income' : 'expense';
+      // A +/- symbol contradicting the label must never generate a transaction.
+      if ((kind === 'income' && m[2].startsWith('-')) || (kind === 'expense' && m[2].startsWith('+')))
+        return null;
       matches.push({ kind, amountSatang });
     }
   }

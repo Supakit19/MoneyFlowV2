@@ -6,6 +6,8 @@ import {
   validateAdditionalBankSources,
 } from '../server/linejs-bank-sources.ts';
 import { parseBankAlertFromSources } from '../server/bank-source-parser.ts';
+import { bankReceiptText } from '../server/bank-linejs-push.ts';
+import { isPotentialBankNotification } from '../integrations/linejs/bank-message-content.ts';
 
 const kbank = 'u' + 'a'.repeat(32);
 const krungthai = 'u' + 'b'.repeat(32);
@@ -84,6 +86,24 @@ describe('Krungthai Connext strictly labelled financial notifications', () => {
         'ktb',
       ),
     ).toMatchObject({ kind: 'expense', amountSatang: 35_050 });
+  });
+  test('accepts explicit labelled signed Krungthai amounts but rejects contradictions', () => {
+    expect(parseBankAlertFromSources({ text: 'เงินเข้า +250.50 บาท' }, 'ktb')).toMatchObject({
+      kind: 'income',
+      amountSatang: 25_050,
+    });
+    expect(parseBankAlertFromSources({ text: 'เงินออก -30.00 บาท' }, 'ktb')).toMatchObject({
+      kind: 'expense',
+      amountSatang: 3_000,
+    });
+    expect(parseBankAlertFromSources({ text: 'เงินเข้า -250.50 บาท' }, 'ktb')).toBeNull();
+    expect(parseBankAlertFromSources({ text: 'เงินออก +30.00 บาท' }, 'ktb')).toBeNull();
+  });
+  test('discovery and LINE OA receipts use the Krungthai Connext name', () => {
+    expect(isPotentialBankNotification('Krungthai Connext แจ้งเตือนบัญชี')).toBe(true);
+    expect(
+      bankReceiptText({ bank: 'Krungthai Connext', kind: 'income', amountSatang: 25_000 }),
+    ).toContain('Krungthai Connext');
   });
   test('does not infer direction from a number alone', () => {
     expect(parseBankAlertFromSources({ text: 'โอนสำเร็จ 350.00 บาท' }, 'ktb')).toBeNull();

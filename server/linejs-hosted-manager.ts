@@ -25,6 +25,7 @@ type Running = {
   qrUrl: string;
   pin: string;
   candidateMid: string;
+  candidateMids: string[];
   eventCount: number;
   observedCount: number;
   skippedCount: number;
@@ -102,6 +103,7 @@ export class HostedLineJsManager {
       qrUrl: '',
       pin: '',
       candidateMid: '',
+      candidateMids: [],
       eventCount: 0,
       observedCount: 0,
       skippedCount: 0,
@@ -128,6 +130,7 @@ export class HostedLineJsManager {
       qrUrl: r?.child ? r.qrUrl : '',
       pin: r?.child ? r.pin : '',
       candidateMid: r?.candidateMid || '',
+      candidateMids: r?.candidateMids || [],
       eventCount: r?.eventCount || 0,
       observedCount: r?.observedCount || 0,
       skippedCount: r?.skippedCount || 0,
@@ -145,6 +148,7 @@ export class HostedLineJsManager {
     r.qrUrl = '';
     r.pin = '';
     r.candidateMid = '';
+    r.candidateMids = [];
     const child = spawn(process.env.LINEJS_NODE_BIN || 'node', ['worker.ts'], {
       cwd: workerDir,
       env: {
@@ -186,9 +190,14 @@ export class HostedLineJsManager {
         r.pin = '';
         r.restarts = 0;
       } else if (x.type === 'push') r.state = 'listening';
-      else if (x.type === 'discovery' && typeof x.mid === 'string' && validMid(x.mid))
-        r.candidateMid = x.mid;
-      else if (x.type === 'observed') r.observedCount++;
+      else if (x.type === 'discovery' && typeof x.mid === 'string' && validMid(x.mid)) {
+        const mid = x.mid.toLowerCase();
+        r.candidateMid = mid;
+        // A personal LINE user can receive both KBank and Krungthai alerts.
+        // Keep recently found MIDs separately, scoped to this session.
+        if (!r.mids.includes(mid) && !r.candidateMids.includes(mid))
+          r.candidateMids = [...r.candidateMids, mid].slice(-8);
+      } else if (x.type === 'observed') r.observedCount++;
       else if (x.type === 'skipped') r.skippedCount++;
       else if (x.type === 'bank') {
         r.eventCount++;

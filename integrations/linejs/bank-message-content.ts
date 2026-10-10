@@ -127,7 +127,7 @@ export function extractLineBankContent(raw: LineMessageLike): LineBankContent {
 
 export function isPotentialBankNotification(text: string): boolean {
   if (isActionableBankAlert(text)) return true;
-  return /(?:เงิน(?:เข้า|ออก)|โอน(?:เงิน)?|ถอน|ยอด(?:เงิน|คงเหลือ)|KBank|SCB|กสิกร|รายการโอน|ชำระ|payment|debit|credit|withdrawal|deposit)/i.test(
+  return /(?:เงิน(?:เข้า|ออก)|โอน(?:เงิน)?|ถอน|ยอด(?:เงิน|คงเหลือ)|KBank|Krungthai|Connext|กรุงไทย|SCB|กสิกร|รายการโอน|ชำระ|payment|debit|credit|withdrawal|deposit)/i.test(
     text.slice(0, MAX_TEXT),
   );
 }

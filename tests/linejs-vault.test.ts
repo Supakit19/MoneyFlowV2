@@ -20,7 +20,11 @@ describe('Multi-user LINEJS encrypted secret handling', () => {
     expect(() => openVault(enc, another, a, 'bridge-token')).toThrow();
     expect(() => openVault(enc, key, b, 'bridge-token')).toThrow();
     expect(() => openVault(enc, key, a, 'line-session')).toThrow();
-    expect(() => openVault(enc.slice(0, -1) + 'X', key, a, 'bridge-token')).toThrow();
+    const pieces = enc.split('.');
+    const cipher = Buffer.from(pieces[3], 'base64url');
+    cipher[0] ^= 1; // Always changes authenticated ciphertext bytes, never padding bits.
+    pieces[3] = cipher.toString('base64url');
+    expect(() => openVault(pieces.join('.'), key, a, 'bridge-token')).toThrow();
     expect(() => vaultKey('1234')).toThrow();
     expect(vaultKey(key.toString('hex'))).toEqual(key);
   });

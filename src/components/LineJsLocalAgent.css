@@ -235,3 +235,32 @@
     flex: 1;
   }
 }
+
+/* The hosted connector can discover several bank senders in one LINE session. */
+.mf-agent-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 15px;
+  border: 1px solid #d4ead9;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f5fcf7;
+}
+.mf-agent-candidates > strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #1f6948;
+}
+.mf-agent-candidates > small {
+  color: #527b5e;
+  font-size: 11px;
+}
+.mf-agent-candidates .mf-agent-candidate {
+  background: #fff;
+  border: 1px solid #e2efe5;
+  margin: 0;
+  padding: 10px;
+}

@@ -4,7 +4,7 @@
 
 New users can scan QR in their own MoneyFlow web account. Every hosted connector has:
 - One Node.js 24 LINEJS process per signed-in MoneyFlow user
-- Unique allowlisted bank sender MID, MoneyFlow destination account and hashed bank bridge token
+- One or more allowlisted bank sender MIDs, each mapped to its own MoneyFlow destination account, with one hashed bank bridge token per user
 - Separate AES-256-GCM encrypted LINE Session on a persistent private server volume
 - AES-256-GCM encrypted bridge token stored in PostgreSQL, bound to that user's ID
 - Authenticated QR/status/start/stop/delete endpoints, a fresh login requirement and a concurrent worker limit (default 4)
@@ -42,7 +42,7 @@ references and balances hidden. MoneyFlow must never claim the bank's authority.
 1. Register/sign into MoneyFlow with their own account.
 2. Create a bank account under MoneyFlow's Accounts menu.
 3. Go to LINEJS, click "เชื่อม LINE ด้วย QR", and approve login using their own LINE mobile app. They must never share the QR or PIN.
-4. Verify the KBank Live or SCB Connect sender found by the worker and choose "เลือกธนาคารนี้", or manually enter a verified sender MID.
+4. Verify KBank Live / Krungthai Connext MIDs discovered from new bank notifications, select the correct chat and account separately, or manually enter a previously verified MID.
 5. Select their own bank account and turn on automatic receipt recording. Press "บันทึกการตั้งค่า".
 6. Optionally link their own LINE OA account and enable notifications.
 7. To pause use "หยุดรับแจ้งเตือน"; to permanently disconnect use "ยกเลิกเชื่อม LINE". LINE's mobile app also provides an active-device list to revoke login.
@@ -65,7 +65,7 @@ Do not expose local session files, token files or server environment variables.
 1. Provision a VPS and HTTPS domain. For a four-person pilot, start around 2 vCPU and 4 GB RAM, observe memory and CPU, and increase when needed.
 2. Configure MoneyFlow's WEB_ORIGIN, Google/LINE OAuth callbacks, and Messaging API webhook URL for that domain.
 3. Copy .env.production.example to private .env.production and fill database credentials, LINE secrets and LINEJS_SESSION_ENCRYPTION_KEY. Never commit or send this file.
-4. Set LINEJS_HOSTED_ENABLED=1 and LINEJS_HOSTED_MAX_WORKERS=4 in .env.production.
+4. Set LINEJS_HOSTED_ENABLED=1; choose LINEJS_HOSTED_MAX_WORKERS according to VPS capacity (shared 4 GB VPS pilot currently restricts concurrent LINE accounts to one Worker). Each Worker can receive both banks.
 5. Run: docker compose --env-file .env.production -f docker-compose.production.yml up -d --build
 6. The API Docker image includes Node.js 24 for LINEJS in addition to Bun. The linejs_sessions named volume persists encrypted sessions.
 7. Run a **single API replica** controlling hosted workers. Horizontal scale needs a distributed ownership lock first.

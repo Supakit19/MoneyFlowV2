@@ -26,6 +26,7 @@ export type HostedStatus = {
   qrUrl: string;
   pin: string;
   candidateMid: string;
+  candidateMids?: string[];
   lastError: string;
   eventCount: number;
   observedCount: number;
@@ -223,18 +224,20 @@ export default function LineJsHostedAgent({
               )}
             </div>
           )}
-          {a.candidateMid && (
-            <div className="mf-agent-candidate">
-              <div>
-                <strong>
-                  <ShieldCheck size={16} /> พบแชตที่อาจเป็นธนาคาร
-                </strong>
-                <small>ตรวจว่าเป็นบัญชีธนาคารจริงก่อนกดเลือก</small>
-                <code>{a.candidateMid}</code>
-              </div>
-              <button type="button" onClick={() => onCandidate?.(a.candidateMid)}>
-                เลือกธนาคารนี้
-              </button>
+          {(a.candidateMids?.length || a.candidateMid) && (
+            <div className="mf-agent-candidates">
+              <strong>
+                <ShieldCheck size={16} /> พบแชตที่อาจเป็นธนาคาร
+              </strong>
+              <small>ตรวจว่าเป็นแชต KBank Live หรือ Krungthai Connext จริงก่อนเลือก</small>
+              {(a.candidateMids?.length ? a.candidateMids : [a.candidateMid]).map((mid) => (
+                <div className="mf-agent-candidate" key={mid}>
+                  <code>{mid}</code>
+                  <button type="button" onClick={() => onCandidate?.(mid)}>
+                    เลือกแชตนี้
+                  </button>
+                </div>
+              ))}
             </div>
           )}
           {a.running && (

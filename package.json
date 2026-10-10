@@ -18,7 +18,10 @@
     "format": "prettier --write src/app src/pages src/components src/lib src/main.tsx",
     "format:check": "prettier --check src/app src/pages src/components src/lib src/main.tsx",
     "line:menu:preview": "bun server/setup-richmenu.ts",
-    "line:menu:publish": "bun server/setup-richmenu.ts --apply"
+    "line:menu:publish": "bun server/setup-richmenu.ts --apply",
+    "line:menu:pocket:prepare": "bun scripts/build-richmenu-pocket.ts",
+    "line:menu:pocket:preview": "node server/setup-richmenu-pocket.mjs",
+    "line:menu:pocket:publish": "node server/setup-richmenu-pocket.mjs --apply"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

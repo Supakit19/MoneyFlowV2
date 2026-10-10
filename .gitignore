@@ -12,3 +12,6 @@ coverage/
 
 # Browser screenshots and QA traces
 .ux-audit/
+
+# Generated high-resolution preview; committed JPG is the published LINE asset
+scripts/moneyflow-richmenu-pocket.png

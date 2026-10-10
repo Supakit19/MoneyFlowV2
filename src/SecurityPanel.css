@@ -631,3 +631,16 @@
     gap: 9px;
   }
 }
+
+.security-safety-note {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #6a896e;
+  background: #f2f8ee;
+  border: 1px solid #e0eadb;
+  border-radius: 10px;
+  padding: 8px 12px;
+  max-width: 315px;
+}

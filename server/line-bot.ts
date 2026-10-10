@@ -1,5 +1,6 @@
 import type { Sql } from 'postgres';
 import { parseLineLoginCommand, isLineLoginAttempt } from '../shared/line-login.ts';
+import { findOrCreateLineUserInTransaction, validVerifiedLineId } from './line-account.ts';
 import { getMiniAppConfig } from './mini-app-auth.ts';
 import { createHash } from 'node:crypto';
 import type { GoogleGenAI } from '@google/genai';
@@ -148,29 +149,60 @@ export async function handleLineMessage(event: any, { db, send, extract, publish
   const reply = async (message: any) => send(lineId, message, event.replyToken);
   const linked = await db.unsafe('SELECT user_id FROM line_links WHERE line_user_id=$1', [lineId]);
 
-  // One-time LINE sign-in: Login 12345678 (also accepts the old Thai prefix).
-  // Verify the linked LINE user ID before approving any browser challenge.
+  // A LINE Messaging webhook is verified by the gateway before this handler.
+  // A user may authenticate for the first time without first registering
+  // with an email. Invalid/expired challenges NEVER create any accounts.
   const loginCode = parseLineLoginCommand(raw);
   if (loginCode) {
-    if (!linked.length)
+    // Never authorize sign-in from public LINE group conversations.
+    if (event.source?.type !== 'user') {
+      return reply(lineErr('เพื่อความปลอดภัย กรุณาส่งรหัส Login ในแชตส่วนตัวกับ MoneyFlow เท่านั้น'));
+    }
+    const codeHash = h('line-login:' + loginCode);
+    if (!linked.length && !validVerifiedLineId(lineId)) {
+      return reply(lineErr('ยืนยัน LINE ไม่สำเร็จ กรุณาลองใหม่ผ่านแชตส่วนตัวของ MoneyFlow'));
+    }
+    if (linked.length) {
+      const matches = await db.unsafe(
+        "UPDATE line_login_challenges SET status='approved',user_id=$1,approved_at=now() WHERE code_hash=$2 AND status='pending' AND expires_at>now() RETURNING id",
+        [linked[0].user_id, codeHash],
+      );
       return reply(
         lineErr(
-          'LINE นี้ยังไม่เชื่อมกับบัญชี MoneyFlow ครับ เข้าเว็บก่อนแล้วเชื่อม LINE จากหน้าบัญชีและความปลอดภัย',
+          matches.length
+            ? '✅ ยืนยันสำเร็จแล้ว! กลับไปหน้า MoneyFlow เพื่อเข้าสู่บัญชีของคุณได้เลยครับ'
+            : 'รหัสไม่ถูกต้อง หมดอายุ หรือใช้ไปแล้ว กรุณากลับไปหน้า MoneyFlow แล้วขอรหัสใหม่ครับ',
         ),
       );
-    const code = loginCode;
-    const matches = await db.unsafe(
-      "UPDATE line_login_challenges SET status='approved',user_id=$1,approved_at=now() WHERE code_hash=$2 AND status='pending' AND expires_at>now() RETURNING id",
-      [linked[0].user_id, h('line-login:' + code)],
-    );
+    }
+
+    // Take the challenge row lock before provisioning a workspace. The same
+    // code can be approved only once, even if two webhook messages race.
+    const newlyLinked = await db.begin(async (tx) => {
+      const challenges = await tx.unsafe(
+        "SELECT id FROM line_login_challenges WHERE code_hash=$1 AND status='pending' AND expires_at>now() FOR UPDATE",
+        [codeHash],
+      );
+      if (!challenges.length) return null;
+      const account = await findOrCreateLineUserInTransaction(tx as unknown as Sql, lineId);
+      const accepted = await tx.unsafe(
+        "UPDATE line_login_challenges SET status='approved',user_id=$1,approved_at=now() WHERE id=$2 AND status='pending' AND expires_at>now() RETURNING id",
+        [account.userId, challenges[0].id],
+      );
+      if (!accepted.length) throw Error('LINE_CHALLENGE_APPROVAL_FAILED');
+      return account;
+    });
     return reply(
       lineErr(
-        matches.length
-          ? '✅ ยืนยันสำเร็จแล้ว! กลับไปที่หน้า MoneyFlow ระบบจะล็อกอินเข้าบัญชีเดิมให้อัตโนมัติครับ'
-          : 'รหัสไม่ถูกต้อง หมดอายุ หรือใช้ไปแล้ว กรุณากลับไปหน้า MoneyFlow แล้วขอรหัสใหม่ครับ',
+        !newlyLinked
+          ? 'รหัสไม่ถูกต้อง หมดอายุ หรือใช้ไปแล้ว กรุณากลับไปหน้า MoneyFlow แล้วขอรหัสใหม่ครับ'
+          : newlyLinked.created
+            ? '✅ สมัครบัญชี MoneyFlow ด้วย LINE สำเร็จแล้ว! กลับไปหน้าเว็บเพื่อเปิดสมุดเงินของคุณได้เลยครับ'
+            : '✅ ยืนยันสำเร็จแล้ว! กลับไปหน้า MoneyFlow เพื่อเข้าสู่บัญชีของคุณได้เลยครับ',
       ),
     );
   }
+
   if (isLineLoginAttempt(raw)) {
     return reply(
       lineErr(

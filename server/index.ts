@@ -18,6 +18,7 @@ import { handleLineMessage } from './line-bot.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
 import { createMiniAppRoutes } from './mini-app-auth.ts';
+import { hasAlternateSignIn } from './line-account.ts';
 import { hostedLineJsManager } from './linejs-hosted-manager.ts';
 import { extraBankSources } from './linejs-bank-sources.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
@@ -595,7 +596,23 @@ const app = new Elysia()
   .delete(
     '/api/line/link',
     guarded(async (_, u) => {
-      await sql`DELETE FROM line_links WHERE user_id=${u}`;
+      // A LINE-only member would permanently lose access to their finance
+      // workspace after disconnecting their one and only identity.
+      await sql.begin(async (tx) => {
+        await tx`SELECT id FROM users WHERE id=${u} FOR UPDATE`;
+        const methods = await tx`
+          SELECT
+            (u.email IS NOT NULL AND u.password_hash IS NOT NULL) AS email_login,
+            EXISTS(SELECT 1 FROM google_links g WHERE g.user_id=u.id) AS google_login
+          FROM users u WHERE u.id=${u} LIMIT 1
+        `;
+        if (!hasAlternateSignIn(methods[0])) {
+          throw Error(
+            'กรุณาเชื่อม Google หรือเพิ่มวิธีเข้าสู่ระบบสำรองก่อนยกเลิก LINE เพื่อไม่ให้สูญเสียการเข้าถึงข้อมูล',
+          );
+        }
+        await tx`DELETE FROM line_links WHERE user_id=${u}`;
+      });
       publishFinance(u, 'line.connected');
       return { ok: true };
     }),

@@ -486,16 +486,16 @@ export default function LandingPage() {
               <div className="mf-site-step-icon">
                 <Fingerprint size={29} />
               </div>
-              <h3>สร้างบัญชี MoneyFlow</h3>
-              <p>เข้าสู่ระบบด้วยอีเมลหรือ Google เพื่อมีสมุดเงินของตัวเอง</p>
+              <h3>เลือกวิธีเริ่มใช้งาน</h3>
+              <p>สมัครผ่าน LINE, Google หรืออีเมลได้ตามสะดวก ไม่จำเป็นต้องสมัครอีเมลก่อน</p>
             </div>
             <div className="mf-site-step">
               <span>02</span>
               <div className="mf-site-step-icon">
                 <MessageCircle size={29} />
               </div>
-              <h3>เพิ่มเพื่อนและเชื่อม LINE</h3>
-              <p>สแกน QR หรือกดเพิ่มเพื่อนก่อน แล้วเชื่อมบัญชี MoneyFlow เพื่อใช้แชตบันทึกเงิน</p>
+              <h3>เพิ่มเพื่อน MoneyFlow ใน LINE</h3>
+              <p>สแกน QR หรือกดเพิ่มเพื่อน จากนั้นเปิดสมุดเงินเพื่อสมัครหรือเข้าใช้ผ่าน LINE ได้เลย</p>
             </div>
             <div className="mf-site-step">
               <span>03</span>
@@ -574,7 +574,7 @@ export default function LandingPage() {
               ],
               [
                 'เปิดจากมือถือได้เลยหรือไม่?',
-                'ได้ครับ เปิด MoneyFlow Pocket จากเมนู LINE โดยใช้บัญชี MoneyFlow เดิมที่เชื่อมกับ LINE ของคุณ',
+                'ได้ครับ เปิด MoneyFlow Pocket จากเมนู LINE เพื่อสมัครบัญชีใหม่หรือเข้าสู่สมุดเงินเดิมได้เลย',
               ],
             ].map(([q, a], i) => (
               <details key={q} open={i === 0}>

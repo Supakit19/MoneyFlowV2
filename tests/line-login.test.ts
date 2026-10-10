@@ -61,7 +61,7 @@ describe('MoneyFlow LINE sign-in command', () => {
       },
     };
     const event = {
-      source: { userId: 'line-user-a' },
+      source: { type: 'user', userId: 'line-user-a' },
       replyToken: 'reply-123',
       message: { type: 'text', text: 'Login 73400441' },
     };
@@ -89,7 +89,7 @@ describe('MoneyFlow LINE sign-in command', () => {
     const fakeDb = { unsafe: async () => [{ user_id: 'finance-user-a' }] };
     await handleLineMessage(
       {
-        source: { userId: 'line-user-a' },
+        source: { type: 'user', userId: 'line-user-a' },
         replyToken: 'reply-123',
         message: { type: 'text', text: '73400441' },
       },

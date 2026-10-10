@@ -32,17 +32,23 @@ function provider(overrides: Record<string, unknown> = {}, status = 200) {
 function appHarness(connected: boolean, customEnv = env) {
   const queries: string[] = [];
   let cookieWrites = 0;
-  const db = ((parts: TemplateStringsArray) => {
+  const db = (async (parts: TemplateStringsArray, ...args: any[]) => {
     const query = parts.join('?').replace(/\s+/g, ' ');
     queries.push(query);
+    if (query.includes('pg_advisory_xact_lock')) return [];
     if (query.includes('SELECT user_id FROM line_links'))
-      return Promise.resolve(connected ? [{ user_id: '00000000-0000-4000-a000-000000000001' }] : []);
+      return connected ? [{ user_id: '00000000-0000-4000-a000-000000000001' }] : [];
+    if (query.includes('INSERT INTO users')) return [{ id: '00000000-0000-4000-a000-000000000002' }];
+    if (query.includes('INSERT INTO line_links')) return [];
+    if (query.includes('INSERT INTO accounts')) return [];
+    if (query.includes('INSERT INTO categories')) return [];
     if (query.includes('INSERT INTO sessions')) {
       cookieWrites++;
-      return Promise.resolve([]);
+      return [];
     }
-    throw Error('Unexpected query');
+    throw Error('Unexpected query: ' + query);
   }) as any;
+  db.begin = async (fn: (tx: any) => Promise<any>) => fn(db);
   const app = createMiniAppRoutes(db, customEnv, provider());
   async function login(origin = env.WEB_ORIGIN, body: unknown = { idToken }) {
     const response = await app.handle(
@@ -82,19 +88,27 @@ describe('MoneyFlow inside LINE: identity and existing account boundaries', () =
     const result = await x.login();
     expect(result.response.status).toBe(200);
     expect(result.data.ok).toBe(true);
+    expect(result.data.created).toBe(false);
     expect(result.response.headers.get('set-cookie')).toContain('mf_session=');
     expect(result.response.headers.get('set-cookie')?.toLowerCase()).toContain('httponly');
     expect(result.response.headers.get('set-cookie')?.toLowerCase()).toContain('secure');
     expect(x.cookieWrites).toBe(1);
   });
-  test('unknown LINE users must link on the existing website, not auto-register', async () => {
+  test('first-time LINE users get a new account and secure session automatically', async () => {
     const x = appHarness(false);
     const result = await x.login();
-    expect(result.response.status).toBe(403);
-    expect(result.data.linkRequired).toBe(true);
-    expect(result.response.headers.get('set-cookie')).toBeNull();
-    expect(x.cookieWrites).toBe(0);
+    expect(result.response.status).toBe(200);
+    expect(result.data).toEqual({ ok: true, created: true });
+    expect(result.response.headers.get('set-cookie')).toContain('mf_session=');
+    expect(result.response.headers.get('set-cookie')?.toLowerCase()).toContain('httponly');
+    expect(result.response.headers.get('set-cookie')?.toLowerCase()).toContain('secure');
+    expect(x.queries.some((q) => q.includes('INSERT INTO users'))).toBe(true);
+    expect(x.queries.some((q) => q.includes('INSERT INTO line_links'))).toBe(true);
+    expect(x.queries.filter((q) => q.includes('INSERT INTO accounts'))).toHaveLength(3);
+    expect(x.queries.filter((q) => q.includes('INSERT INTO categories'))).toHaveLength(10);
+    expect(x.cookieWrites).toBe(1);
   });
+
   test('cross-site requests and client-supplied LINE user IDs cannot bypass verification', async () => {
     const x = appHarness(true);
     const blocked = await x.login('https://evil.example', { idToken, userId: lineId });

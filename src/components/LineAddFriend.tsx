@@ -84,8 +84,8 @@ export default function LineAddFriend() {
             <div>
               <span>03</span>
               <p>
-                <strong>เข้าสู่ระบบแล้วเชื่อมบัญชี</strong>
-                <small>ผูก LINE กับสมุดเงินของคุณเพื่อเริ่มบันทึก</small>
+                <strong>เปิดสมุดเงินผ่าน LINE</strong>
+                <small>ผู้ใช้ใหม่สมัครผ่าน LINE ได้เลย ส่วนบัญชีเดิมเชื่อมได้ในเว็บ</small>
               </p>
             </div>
           </div>
@@ -151,8 +151,8 @@ export default function LineAddFriend() {
           <div className="mf-join-note">
             <ShieldCheck size={18} />
             <span>
-              เพิ่มเพื่อนกับ LINE OA ไม่ได้สร้างบัญชี MoneyFlow อัตโนมัติ —
-              เชื่อมบัญชีในเว็บไซต์ก่อนเริ่มใช้งาน
+              เพิ่มเพื่อนอย่างเดียวยังไม่ได้สร้างบัญชี MoneyFlow — กด “สมุดเงิน” ในแชต LINE
+              เพื่อสมัครหรือเข้าสู่ระบบได้เลย หากมีบัญชีเดิมให้เชื่อม LINE จากเว็บไซต์ก่อน
             </span>
           </div>
         </div>

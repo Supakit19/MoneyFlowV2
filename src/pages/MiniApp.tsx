@@ -56,9 +56,7 @@ export default function MiniApp() {
   const [data, setData] = useState<Data | null>(null);
   const [overview, setOverview] = useState<FinanceOverview | null>(null);
   const [name, setName] = useState('คุณ');
-  const [pageState, setPageState] = useState<'loading' | 'ready' | 'setup' | 'unlinked' | 'error'>(
-    'loading',
-  );
+  const [pageState, setPageState] = useState<'loading' | 'ready' | 'setup' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -91,24 +89,30 @@ export default function MiniApp() {
     setPageState('loading');
     setMessage('');
     try {
-      await refresh();
-      return;
-    } catch (e: any) {
-      if (e.status !== 401) {
-        setMessage('ตอนนี้โหลดข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง');
-        setPageState('error');
-        return;
-      }
-    }
-    try {
       const config = (await api('/mini/config')) as { enabled: boolean; liffId: string };
       if (!config.enabled || !config.liffId) {
-        setPageState('setup');
+        // The website can still display an existing signed-in account when
+        // the LIFF integration is not configured; don't authorize new users.
+        try {
+          await refresh();
+        } catch {
+          setPageState('setup');
+        }
         return;
       }
-      // Load LINE's official library only when a LIFF app is actually configured.
+
       const liff = (await import('@line/liff')).default;
       await liff.init({ liffId: config.liffId });
+      // Never trust a previous web session when opened INSIDE LINE: it might
+      // belong to another user of the device. Re-verify the LINE identity.
+      if (!liff.isInClient() && !liff.isLoggedIn()) {
+        try {
+          await refresh();
+          return;
+        } catch (error: any) {
+          if (error.status !== 401) throw error;
+        }
+      }
       if (!liff.isLoggedIn()) {
         if (!liff.isInClient()) {
           liff.login({ redirectUri: window.location.origin + '/mini' });
@@ -118,16 +122,19 @@ export default function MiniApp() {
       }
       const idToken = liff.getIDToken();
       if (!idToken) throw Error('LINE_ID_TOKEN_MISSING');
-      await api('/mini/auth', 'POST', { idToken });
+      const signedIn = (await api('/mini/auth', 'POST', { idToken })) as {
+        ok: boolean;
+        created?: boolean;
+      };
       await refresh();
+      if (signedIn.created) setToast('ยินดีต้อนรับสู่ MoneyFlow! สมุดเงินของคุณพร้อมแล้ว');
     } catch (error: any) {
-      if (error?.status === 403) {
-        setMessage('LINE นี้ยังไม่เชื่อมกับบัญชี MoneyFlow ของคุณ');
-        setPageState('unlinked');
-      } else {
-        setMessage('ไม่สามารถยืนยันตัวตนผ่าน LINE ได้ กรุณาลองใหม่หรือเข้าสู่ระบบบนเว็บไซต์');
-        setPageState('error');
-      }
+      setMessage(
+        error?.status === 403
+          ? 'คำขอยืนยันตัวตนไม่ผ่านการตรวจสอบ กรุณาเปิด MoneyFlow ผ่าน LINE ใหม่อีกครั้ง'
+          : 'ไม่สามารถยืนยันตัวตนผ่าน LINE ได้ กรุณาลองใหม่หรือเข้าสู่ระบบบนเว็บไซต์',
+      );
+      setPageState('error');
     }
   }
   useEffect(() => {
@@ -267,18 +274,12 @@ export default function MiniApp() {
                 <div className="mf-mini-gate-card">
                   {pageState === 'setup' ? <Sparkles size={26} /> : <CircleAlert size={26} />}
                   <h2>
-                    {pageState === 'setup'
-                      ? 'หน้าจัดการเงินบนมือถือพร้อมแล้ว'
-                      : pageState === 'unlinked'
-                        ? 'เชื่อมบัญชีครั้งแรกก่อนนะ'
-                        : 'เปิดหน้านี้ไม่สำเร็จ'}
+                    {pageState === 'setup' ? 'หน้าจัดการเงินบนมือถือพร้อมแล้ว' : 'เปิดหน้านี้ไม่สำเร็จ'}
                   </h2>
                   <p>
                     {pageState === 'setup'
-                      ? 'คุณสามารถทดลองผ่านเว็บไซต์ได้ก่อน ส่วนการเปิดจากแชต LINE จะใช้ได้เมื่อเชื่อมบริการเรียบร้อย'
-                      : pageState === 'unlinked'
-                        ? 'เข้าเว็บไซต์ MoneyFlow เพื่อเชื่อม LINE กับบัญชีของคุณ แล้วกลับมาเปิดหน้านี้อีกครั้ง'
-                        : message}
+                      ? 'ยังไม่ได้เปิดใช้งาน MoneyFlow Pocket กรุณาใช้เว็บไซต์ก่อน'
+                      : message}
                   </p>
                   <a className="mf-mini-main-link" href="/login">
                     ไปที่เว็บไซต์ MoneyFlow <ArrowRight size={17} />

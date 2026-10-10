@@ -63,12 +63,18 @@ export async function attachEmailPassword(
   if (!validEmail(email)) throw Error('กรุณาใส่อีเมลที่ถูกต้อง');
   if (!validPassword(input.password)) throw Error('รหัสผ่านต้องมีอย่างน้อย 10 ตัวอักษร');
   const user = await db`
-   SELECT u.email,u.password_hash,g.email google_email
+   SELECT u.username,u.email,u.password_hash,g.email google_email
    FROM users u LEFT JOIN google_links g ON g.user_id=u.id
    WHERE u.id=${userId} LIMIT 1
  `;
   if (!user.length) throw Error('ไม่พบบัญชี');
   if (user[0].password_hash) throw Error('บัญชีนี้ตั้งรหัสผ่านไว้แล้ว');
+  // A freshly provisioned LINE-only account has no verified email claim.
+  // It must first link a verified Google identity, or anyone could register
+  // another person's email address as their password recovery identity.
+  if (String(user[0].username || '').startsWith('line:') && !user[0].google_email) {
+    throw Error('บัญชีที่สมัครผ่าน LINE ต้องเชื่อม Google เพื่อยืนยันอีเมลก่อนตั้งรหัสผ่าน');
+  }
   // Google account owners can only add the Google-verified email, not arbitrarily
   // choose a third party's address. E-mail-only accounts already have a password.
   if (user[0].google_email && user[0].google_email.toLowerCase() !== email) {

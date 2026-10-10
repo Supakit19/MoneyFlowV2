@@ -35,7 +35,8 @@ describe('LINE OA friend onboarding on the public MoneyFlow website', () => {
     expect(html).toContain('เพิ่มเพื่อน LINE');
     expect(html).toContain('href="#line"');
     expect(html).toContain('href="/login"');
-    expect(html).toContain('เพิ่มเพื่อนกับ LINE OA ไม่ได้สร้างบัญชี MoneyFlow อัตโนมัติ');
+    expect(html).toContain('เพิ่มเพื่อนอย่างเดียวยังไม่ได้สร้างบัญชี MoneyFlow');
+    expect(html).toContain('เพื่อสมัครหรือเข้าสู่ระบบได้เลย');
     expect(html).not.toContain('https://line.me/R/ti/p/%40fake');
   });
 

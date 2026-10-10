@@ -41,7 +41,7 @@ async function post<T>(path: string, body: object): Promise<T> {
   return result as T;
 }
 
-/** Original LINE OA login: send "Login 12345678" to the linked MoneyFlow bot. */
+/** LINE sign-up/sign-in via the verified OA chat, with direct LIFF sign-in on mobile. */
 export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,9 +50,28 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
   const [finishing, setFinishing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pollNote, setPollNote] = useState('รอข้อความยืนยันจาก LINE');
+  const [miniUrl, setMiniUrl] = useState<string | null>(null);
   const handlers = useRef({ onAuthenticated, onError });
   const qrDialogRef = useRef<HTMLDialogElement | null>(null);
   handlers.current = { onAuthenticated, onError };
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/mini/config', { signal: controller.signal, credentials: 'same-origin' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((value) => {
+        if (
+          !controller.signal.aborted &&
+          value?.enabled === true &&
+          typeof value.liffId === 'string' &&
+          /^[0-9]{5,20}-[A-Za-z0-9]{5,64}$/.test(value.liffId)
+        ) {
+          setMiniUrl('https://liff.line.me/' + value.liffId);
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const expired = Boolean(challenge && secondsLeft === 0);
   const command = challenge ? formatLineLoginCommand(challenge.code) : '';
@@ -114,7 +133,8 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
         setFinishing(true);
         setPollNote('ยืนยันสำเร็จแล้ว กำลังเข้าสู่ระบบ...');
         await post('/auth/line/complete', identity);
-        if (!inactive) await handlers.current.onAuthenticated('เข้าสู่บัญชีเดิมผ่าน LINE สำเร็จ');
+        if (!inactive)
+          await handlers.current.onAuthenticated('เข้าสู่ระบบหรือสมัครบัญชีด้วย LINE สำเร็จ');
       } catch (error: any) {
         if (inactive) return;
         const message = String(error.message || '');
@@ -163,11 +183,28 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
       </div>
       <h3>เข้าสู่ระบบด้วย LINE</h3>
       <p className="line-code-description">
-        ใช้ LINE ที่เคยเชื่อมกับ MoneyFlow เพื่อกลับเข้าบัญชีเดิมโดยไม่ต้องใช้รหัสผ่าน
+        ใช้ LINE สมัครบัญชีใหม่หรือเข้าสู่บัญชีเดิมได้เลย ไม่ต้องตั้งรหัสผ่าน
       </p>
 
       {!challenge ? (
         <>
+          {miniUrl && (
+            <div className="line-direct-signin">
+              <div className="line-direct-signin-label">ใช้ LINE บนมือถือ</div>
+              <a
+                className="button primary wide line-direct-signin-button"
+                href={miniUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={18} /> เปิด MoneyFlow ผ่าน LINE <ArrowRight size={17} />
+              </a>
+              <p>เข้าใช้งานครั้งแรก ระบบจะสร้างสมุดเงินให้ทันที ไม่ต้องกรอกอีเมล</p>
+            </div>
+          )}
+          <div className="line-code-divider">
+            <span>หรือยืนยันจากแชต LINE เพื่อใช้บนคอมพิวเตอร์</span>
+          </div>
           <div className="auth-line-instructions">
             <div className="auth-line-step">
               <span className="auth-line-step-number">1</span>
@@ -183,7 +220,7 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
             </div>
             <div className="auth-line-step">
               <span className="auth-line-step-number">3</span>
-              <p>เมื่อ LINE ยืนยันสำเร็จ เว็บจะเข้าสู่บัญชีเดิมโดยอัตโนมัติ</p>
+              <p>เมื่อ LINE ยืนยันสำเร็จ จะสมัครบัญชีใหม่หรือเข้าสู่บัญชีเดิมให้โดยอัตโนมัติ</p>
             </div>
           </div>
           <button
@@ -192,9 +229,13 @@ export default function LineCodeLogin({ onAuthenticated, onError }: Props) {
             onClick={() => void createCode()}
             disabled={busy}
           >
-            {busy ? 'กำลังสร้างรหัส...' : 'สร้างรหัสเข้าสู่ระบบ'}
+            {busy ? 'กำลังสร้างรหัส...' : 'สร้างรหัสยืนยันผ่าน LINE'}
             {!busy && <ArrowRight size={17} />}
           </button>
+          <p className="line-code-existing-warning">
+            มีบัญชีอีเมลหรือ Google ที่เคยบันทึกเงินไว้แล้ว? ให้เข้าสู่บัญชีเดิมแล้วเชื่อม LINE
+            ที่หน้าบัญชีและความปลอดภัยก่อน เพื่อใช้สมุดเงินเดิมโดยไม่สร้างบัญชีแยก
+          </p>
         </>
       ) : (
         <div className="auth-line-challenge">

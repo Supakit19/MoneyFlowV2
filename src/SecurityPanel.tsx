@@ -363,25 +363,31 @@ export default function SecurityPanel({
                   <button className="button outline" type="button" onClick={onOpenLine}>
                     เปิดหน้า LINE &amp; AI <ArrowUpRight size={16} />
                   </button>
-                  <button
-                    type="button"
-                    className="security-danger"
-                    disabled={loading}
-                    onClick={async () => {
-                      if (
-                        await askConfirm({
-                          title: 'ยกเลิกการเชื่อม LINE?',
-                          description:
-                            'คุณจะไม่สามารถเข้าสู่ระบบหรือบันทึกรายจ่ายผ่าน LINE ได้จนกว่าจะเชื่อมใหม่ แต่ข้อมูลการเงินเดิมยังอยู่ครบ',
-                          confirmLabel: 'ยกเลิกการเชื่อม',
-                          tone: 'danger',
-                        })
-                      )
-                        await perform(() => api('/line/link', 'DELETE'), 'ยกเลิกเชื่อม LINE แล้ว');
-                    }}
-                  >
-                    <Unlink size={15} /> ยกเลิกเชื่อม
-                  </button>
+                  {profile.google_linked || (profile.email_login_enabled && profile.password_set) ? (
+                    <button
+                      type="button"
+                      className="security-danger"
+                      disabled={loading}
+                      onClick={async () => {
+                        if (
+                          await askConfirm({
+                            title: 'ยกเลิกการเชื่อม LINE?',
+                            description:
+                              'คุณจะไม่สามารถเข้าสู่ระบบหรือบันทึกรายจ่ายผ่าน LINE ได้จนกว่าจะเชื่อมใหม่ แต่ข้อมูลการเงินเดิมยังอยู่ครบ',
+                            confirmLabel: 'ยกเลิกการเชื่อม',
+                            tone: 'danger',
+                          })
+                        )
+                          await perform(() => api('/line/link', 'DELETE'), 'ยกเลิกเชื่อม LINE แล้ว');
+                      }}
+                    >
+                      <Unlink size={15} /> ยกเลิกเชื่อม
+                    </button>
+                  ) : (
+                    <span className="security-safety-note">
+                      บัญชีนี้ใช้ LINE เป็นทางเข้าหลัก กรุณาเชื่อม Google ก่อนจึงจะยกเลิก LINE ได้
+                    </span>
+                  )}
                 </div>
               </div>
               <aside className="security-line-guide is-connected" aria-label="การเข้าสู่ระบบผ่าน LINE">

@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { Elysia } from 'elysia';
 import type { Sql } from 'postgres';
 import { isAuthorizedGoogleOrigin } from './google-auth.ts';
+import { findOrCreateLineUser } from './line-account.ts';
 
 /**
  * An app opened inside LINE uses LINE Login, never the unofficial bank-chat listener.
@@ -88,20 +89,14 @@ export function createMiniAppRoutes(
         return { error: 'ยืนยันบัญชี LINE ไม่สำเร็จ กรุณาลองเปิดใหม่อีกครั้ง' };
       }
       try {
-        // A LINE identity can access only the MoneyFlow account explicitly linked to it.
-        // Never register new users or trust profile/user IDs supplied by the browser.
-        const linked = await db`SELECT user_id FROM line_links WHERE line_user_id=${lineUserId} LIMIT 1`;
-        if (!linked.length) {
-          ctx.set.status = 403;
-          return {
-            error: 'LINE นี้ยังไม่เชื่อมกับ MoneyFlow กรุณาเข้าเว็บไซต์และเชื่อมบัญชีก่อน',
-            linkRequired: true,
-          };
-        }
+        // A valid official LINE ID token authenticates both a new member
+        // (provisioning an isolated workspace) and a returning member.
+        // Never auto-merge by display name, email, or client-supplied ID.
+        const account = await findOrCreateLineUser(db, lineUserId);
         const session = randomBytes(32).toString('hex');
         const hash = createHash('sha256').update(session).digest('hex');
         await db`INSERT INTO sessions(token_hash,user_id,expires_at,auth_method)
-          VALUES(${hash},${linked[0].user_id},now()+interval '7 days','line')`;
+          VALUES(${hash},${account.userId},now()+interval '7 days','line')`;
         ctx.cookie.mf_session.set({
           value: session,
           httpOnly: true,
@@ -110,7 +105,7 @@ export function createMiniAppRoutes(
           path: '/',
           maxAge: 7 * 24 * 60 * 60,
         });
-        return { ok: true };
+        return { ok: true, created: account.created };
       } catch {
         ctx.set.status = 500;
         return { error: 'เข้าใช้งานไม่สำเร็จ กรุณาลองใหม่ภายหลัง' };

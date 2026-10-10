@@ -21,6 +21,7 @@ import {
 import { api } from '../lib/api';
 import type { Data, Entry } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
+import FlowLoader from '../components/FlowLoader';
 import './MiniApp.css';
 
 type Tab = 'home' | 'history' | 'wallets';
@@ -252,17 +253,17 @@ export default function MiniApp() {
       <div className="mf-mini-frame">
         {pageState !== 'ready' ? (
           <div className="mf-mini-gate">
-            <div className="mf-mini-gate-logo">
-              <span>
-                m<span className="mf-mini-dot">.</span>
-              </span>
-            </div>
-            <h1>MoneyFlow</h1>
-            <p className="mf-mini-gate-kicker">พื้นที่จัดการเงินของคุณ</p>
             {pageState === 'loading' ? (
-              <p className="mf-mini-muted">กำลังเปิดข้อมูลของคุณ...</p>
+              <FlowLoader message="เรากำลังเตรียมภาพรวมการเงินของคุณ" />
             ) : (
               <>
+                <div className="mf-mini-gate-logo">
+                  <span>
+                    m<span className="mf-mini-dot">.</span>
+                  </span>
+                </div>
+                <h1>MoneyFlow</h1>
+                <p className="mf-mini-gate-kicker">พื้นที่จัดการเงินของคุณ</p>
                 <div className="mf-mini-gate-card">
                   {pageState === 'setup' ? <Sparkles size={26} /> : <CircleAlert size={26} />}
                   <h2>

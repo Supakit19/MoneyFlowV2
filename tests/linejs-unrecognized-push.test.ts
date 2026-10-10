@@ -19,7 +19,8 @@ describe('LINEJS reports unrecognized bank notifications without booking money',
     globalThis.fetch = async (_input: any, init?: any) => {
       deliveries++;
       const payload = JSON.parse(init.body);
-      postedText = payload.messages[0].text;
+      expect(payload.messages[0].type).toBe('flex');
+      postedText = JSON.stringify(payload.messages[0]);
       expect(payload.to).toBe('U' + 'c'.repeat(32));
       return new Response('{}', { status: 200 });
     };

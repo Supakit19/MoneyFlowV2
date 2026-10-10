@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowUpRight, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, ArrowUpRight, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import AuthPortal from '../AuthPortal';
 import BrandMark from '../components/BrandMark';
 type Props = {
@@ -13,6 +14,9 @@ export default function LoginPage({ onAuthenticated, onError, onPreview, error }
   return (
     <div className="auth-background">
       <div className="auth-shell">
+        <Link to="/" className="auth-back-home">
+          <ArrowLeft size={15} /> รู้จัก MoneyFlow ก่อนเริ่มใช้งาน
+        </Link>
         <div className="brand large">
           {mark}
           <span>

@@ -1,154 +1,557 @@
-import {formatBaht,type WeeklyStatus} from './moneyflow-features.ts';
+import { formatBaht, type WeeklyStatus } from './moneyflow-features.ts';
 
-type Item={kind:string;amount:number;merchant?:string;category?:string;note?:string};
-type AnyNode=Record<string,any>;
-const C={
- ink:'#1D4233',muted:'#718B7D',light:'#EDF5ED',green:'#119A77',
- lime:'#D6ECB5',white:'#FFFFFF',gold:'#DA9448',warn:'#B56B36',red:'#C8544A',
- dark:'#133E32'
+type Item = { kind: string; amount: number; merchant?: string; category?: string; note?: string };
+type FlexNode = Record<string, any>;
+const P = {
+  pine: '#123D32',
+  pine2: '#205A46',
+  ink: '#193F32',
+  soft: '#729080',
+  faded: '#98A99D',
+  lime: '#C8ED98',
+  mint: '#E9F6ED',
+  line: '#E4ECE5',
+  paper: '#FFFFFF',
+  canvas: '#F8FBF7',
+  green: '#11986D',
+  red: '#CF6257',
+  warm: '#D38D48',
+  amberBg: '#FFF5E6',
+  redBg: '#FFF0EC',
 };
-const text=(value:unknown,size='sm',color=C.ink,weight='regular'):AnyNode=>({
- type:'text',text:String(value??'').slice(0,500),size,color,weight,wrap:true
+const txt = (value: unknown, size = 'sm', color = P.ink, weight = 'regular'): FlexNode => ({
+  type: 'text',
+  text: String(value ?? '').slice(0, 450),
+  size,
+  color,
+  weight,
+  wrap: true,
 });
-const hbox=(children:AnyNode[],spacing='sm'):AnyNode=>({type:'box',layout:'horizontal',contents:children,spacing});
-const vbox=(children:AnyNode[],spacing='sm'):AnyNode=>({type:'box',layout:'vertical',contents:children,spacing});
-const divider=()=>({type:'separator',margin:'md',color:'#E5EEE6'});
-const action=(label:string,message:string,primary=false):AnyNode=>({
- type:'button',style:primary?'primary':'secondary',height:'sm',
- color:primary?C.green:C.light,
- action:{type:'message',label,text:message}
+const hbox = (contents: FlexNode[], spacing = 'sm'): FlexNode => ({
+  type: 'box',
+  layout: 'horizontal',
+  contents,
+  spacing,
 });
-const linkAction=(label:string,uri:string):AnyNode=>({
- type:'button',style:'primary',height:'sm',color:C.green,
- action:{type:'uri',label,uri}
+const vbox = (contents: FlexNode[], spacing = 'sm'): FlexNode => ({
+  type: 'box',
+  layout: 'vertical',
+  contents,
+  spacing,
 });
-const weeklyMeter=(status:WeeklyStatus):AnyNode=>{
- if(!status.limitSatang)return vbox([
-  text('ยังไม่ได้ตั้งงบรายสัปดาห์','sm',C.muted)
- ]);
- const percent=Math.min(100,Math.round(status.progress*100));
- const color=status.progress>=1?C.red:status.progress>=0.9?C.gold:C.green;
- return vbox([
-  hbox([text('งบประจำสัปดาห์','sm',C.ink,'bold'),
-   {...text(Math.round(status.progress*100)+'%','sm',color,'bold'),align:'end',flex:1}]),
-  {type:'box',layout:'horizontal',height:'9px',backgroundColor:'#E7EEE7',
-   contents:[{type:'box',layout:'vertical',width:Math.max(1,percent)+'%',
-    backgroundColor:color,height:'9px',contents:[]}]},
-  hbox([text('ใช้ไป '+formatBaht(status.spentSatang),'xs',C.muted),
-   {...text('เหลือ '+formatBaht(Math.max(0,status.remainingSatang)),'xs',status.remainingSatang<0?C.red:C.ink,'bold'),align:'end',flex:1}]),
-  text('เหลืออีก '+status.daysLeftInWeek+' วันก่อนเริ่มสัปดาห์ใหม่','xs',C.muted)
- ],'md');
+const rule = (): FlexNode => ({ type: 'separator', margin: 'md', color: P.line });
+const button = (label: string, message: string, primary = false): FlexNode => ({
+  type: 'button',
+  style: primary ? 'primary' : 'secondary',
+  height: 'sm',
+  ...(primary ? { color: P.pine2 } : {}),
+  action: { type: 'message', label, text: message },
+});
+const linkButton = (label: string, url: string): FlexNode => ({
+  type: 'button',
+  style: 'primary',
+  height: 'sm',
+  color: P.pine2,
+  action: { type: 'uri', label, uri: url },
+});
+const card = (label: string, amount: string, color = P.ink, bg = P.canvas): FlexNode => ({
+  type: 'box',
+  layout: 'vertical',
+  backgroundColor: bg,
+  cornerRadius: '13px',
+  paddingAll: '13px',
+  contents: [txt(label, 'xxs', P.soft, 'bold'), txt(amount, 'lg', color, 'bold')],
+  spacing: 'sm',
+  flex: 1,
+});
+const eyebrow = (value: string, color = P.soft): FlexNode => txt(value, 'xxs', color, 'bold');
+const detailRow = (label: string, value: string, color = P.ink): FlexNode =>
+  hbox(
+    [
+      { ...txt(label, 'sm', P.soft), flex: 1 },
+      { ...txt(value, 'sm', color, 'bold'), align: 'end', flex: 1 },
+    ],
+    'sm',
+  );
+const subCard = (items: FlexNode[], background = P.canvas): FlexNode => ({
+  type: 'box',
+  layout: 'vertical',
+  cornerRadius: '15px',
+  backgroundColor: background,
+  paddingAll: '15px',
+  spacing: 'md',
+  contents: items,
+});
+const pill = (label: string, background = P.mint, color = P.green): FlexNode => ({
+  type: 'box',
+  layout: 'vertical',
+  backgroundColor: background,
+  cornerRadius: '12px',
+  paddingAll: '7px',
+  contents: [txt(label, 'xxs', color, 'bold')],
+});
+const makeBubble = (
+  title: string,
+  subtitle: string,
+  body: FlexNode[],
+  actions?: FlexNode[],
+  badge = 'MONEYFLOW • FINANCE',
+): FlexNode => ({
+  type: 'bubble',
+  size: 'mega',
+  styles: {
+    header: { backgroundColor: P.pine },
+    body: { backgroundColor: P.paper },
+    footer: { backgroundColor: P.paper, separator: true, separatorColor: P.line },
+  },
+  header: {
+    ...vbox(
+      [
+        hbox([
+          { ...txt('●  moneyflow.', 'md', P.lime, 'bold'), flex: 1 },
+          { ...txt('YOUR MONEY, IN FLOW', 'xxs', '#B4D4C0'), align: 'end', flex: 1 },
+        ]),
+        {
+          type: 'box',
+          layout: 'vertical',
+          height: '2px',
+          width: '48px',
+          backgroundColor: P.lime,
+          contents: [],
+        },
+        txt(badge, 'xxs', '#A5D1B9', 'bold'),
+        txt(title, 'xl', P.paper, 'bold'),
+        txt(subtitle, 'xs', '#D1E7D9'),
+      ],
+      'sm',
+    ),
+    paddingAll: '20px',
+  },
+  body: { ...vbox(body, 'md'), paddingAll: '20px' },
+  ...(actions?.length ? { footer: { ...vbox([hbox(actions, 'sm')], 'sm'), paddingAll: '13px' } } : {}),
+});
+export function flexMessage(altText: string, bubble: FlexNode, quick?: string[]): FlexNode {
+  const result: FlexNode = { type: 'flex', altText: altText.slice(0, 350), contents: bubble };
+  if (quick?.length)
+    result.quickReply = {
+      items: quick.slice(0, 7).map((value) => ({
+        type: 'action',
+        action: { type: 'message', label: value.slice(0, 20), text: value },
+      })),
+    };
+  return result;
+}
+const percentage = (numerator: number, denominator: number) =>
+  denominator > 0 ? Math.max(0, Math.round((numerator / denominator) * 100)) : 0;
+const meter = (spent: number, limit: number, color = P.green): FlexNode => ({
+  type: 'box',
+  layout: 'horizontal',
+  height: '9px',
+  backgroundColor: P.line,
+  cornerRadius: '6px',
+  contents: [
+    {
+      type: 'box',
+      layout: 'vertical',
+      height: '9px',
+      width: Math.max(1, Math.min(100, percentage(spent, limit))) + '%',
+      cornerRadius: '6px',
+      backgroundColor: color,
+      contents: [],
+    },
+  ],
+});
+const weeklyBlock = (week: WeeklyStatus): FlexNode => {
+  if (!week.limitSatang)
+    return subCard([
+      hbox([{ ...txt('งบประจำสัปดาห์', 'sm', P.ink, 'bold'), flex: 1 }, pill('ยังไม่ตั้งงบ')]),
+      txt('ตั้งงบสัปดาห์บนเว็บหรือสมุดเงิน เพื่อดูว่าแต่ละวันใช้เพิ่มได้อีกเท่าไหร่', 'xs', P.soft),
+    ]);
+  const percent = percentage(week.spentSatang, week.limitSatang);
+  const over = week.spentSatang > week.limitSatang;
+  const color = over ? P.red : percent >= 90 ? P.warm : P.green;
+  return subCard([
+    hbox([
+      { ...txt('งบของสัปดาห์นี้', 'sm', P.ink, 'bold'), flex: 1 },
+      pill(percent + '%', over ? P.redBg : percent >= 90 ? P.amberBg : P.mint, color),
+    ]),
+    meter(week.spentSatang, week.limitSatang, color),
+    hbox([
+      {
+        ...vbox([eyebrow('ใช้ไป'), txt(formatBaht(week.spentSatang), 'md', P.ink, 'bold')], 'xs'),
+        flex: 1,
+      },
+      {
+        ...vbox(
+          [
+            eyebrow(over ? 'เกินงบ' : 'ยังเหลือ'),
+            txt(formatBaht(Math.abs(week.remainingSatang)), 'md', color, 'bold'),
+          ],
+          'xs',
+        ),
+        flex: 1,
+      },
+    ]),
+    txt('อีก ' + week.daysLeftInWeek + ' วัน จะเริ่มงบสัปดาห์ใหม่', 'xs', P.soft),
+  ]);
 };
-const wrap=(title:string,subtitle:string,body:AnyNode[],buttons?:AnyNode[]):AnyNode=>({
- type:'bubble',size:'mega',
- styles:{header:{backgroundColor:C.dark},footer:{backgroundColor:C.white},body:{backgroundColor:C.white}},
- header:vbox([
-  hbox([text('●  moneyflow.','md',C.lime,'bold'),
-   {...text('YOUR MONEY, IN FLOW','xxs','#B0D6BF'),flex:1,align:'end'}]),
-  text(title,'xl',C.white,'bold'),
-  text(subtitle,'xs','#C1D9CA')
- ],'sm'),
- body:vbox(body,'md'),
- ...(buttons?.length?{footer:vbox([divider(),hbox(buttons)],'sm')}:{})
-});
-export function flexMessage(altText:string,bubble:AnyNode,quick?:string[]):AnyNode{
- const message:any={type:'flex',altText:altText.slice(0,350),contents:bubble};
- if(quick?.length)message.quickReply={items:quick.slice(0,7).map(name=>({
-  type:'action',action:{type:'message',label:name.slice(0,20),text:name}
- }))};
- return message;
+const itemRows = (items: Item[]) =>
+  items.slice(0, 6).map((item) => {
+    const isIncome = item.kind === 'income';
+    return hbox(
+      [
+        {
+          type: 'box',
+          layout: 'vertical',
+          width: '32px',
+          height: '32px',
+          cornerRadius: '10px',
+          backgroundColor: isIncome ? P.mint : P.amberBg,
+          contents: [
+            { ...txt(isIncome ? '↓' : '↑', 'md', isIncome ? P.green : P.warm, 'bold'), align: 'center' },
+          ],
+        },
+        {
+          ...vbox(
+            [
+              txt(item.merchant?.trim() || 'รายการใหม่', 'sm', P.ink, 'bold'),
+              txt(item.category || 'รายการเงิน', 'xxs', P.soft),
+            ],
+            'xs',
+          ),
+          flex: 1,
+        },
+        {
+          ...txt(
+            (isIncome ? '+' : '−') + formatBaht(Math.round(Number(item.amount) * 100)),
+            'sm',
+            isIncome ? P.green : P.ink,
+            'bold',
+          ),
+          align: 'end',
+        },
+      ],
+      'sm',
+    );
+  });
+
+export function receiptCard(items: Item[], week: WeeklyStatus, notice: string, confirmed: boolean) {
+  const total = items.reduce((sum, item) => sum + Math.round(Number(item.amount) * 100), 0);
+  const body: FlexNode[] = [
+    hbox([
+      eyebrow(confirmed ? 'บันทึกรายการสำเร็จ' : 'กำลังรอคุณตรวจสอบ', confirmed ? P.green : P.warm),
+      pill(items.length + ' รายการ'),
+    ]),
+    txt(formatBaht(total), 'xxl', P.ink, 'bold'),
+    txt(
+      confirmed ? 'รายการนี้อยู่ในสมุดเงินของคุณแล้ว' : 'ตรวจชื่อรายการ ยอดเงิน และหมวดหมู่ก่อนกดยืนยัน',
+      'xs',
+      P.soft,
+    ),
+    rule(),
+    ...itemRows(items),
+  ];
+  if (items.length > 6) body.push(txt('และอีก ' + (items.length - 6) + ' รายการ', 'xs', P.soft));
+  if (week.limitSatang) body.push(rule(), weeklyBlock(week));
+  if (notice)
+    body.push(
+      subCard(
+        [eyebrow('✦ ข้อสังเกตจากผู้ช่วย', P.warm), txt(notice, 'sm', P.ink)],
+        week.progress >= 1 ? P.redBg : P.amberBg,
+      ),
+    );
+  return flexMessage(
+    confirmed
+      ? 'MoneyFlow บันทึกรายการ ' + items.length + ' รายการแล้ว'
+      : 'MoneyFlow รอตรวจสอบ ' + items.length + ' รายการ',
+    makeBubble(
+      confirmed ? 'บันทึกเรียบร้อย ✓' : 'เช็กรายการอีกนิด',
+      confirmed ? 'ทุกยอดมีที่อยู่ในสมุดเงินแล้ว' : 'ตรวจให้ชัวร์ก่อนเข้าบัญชี',
+      body,
+      confirmed
+        ? [button('สรุปสัปดาห์', 'สรุปสัปดาห์'), button('ดูกราฟ', 'กราฟเดือนนี้', true)]
+        : [button('ยกเลิก', 'ยกเลิก'), button('ยืนยันบันทึก', 'ยืนยัน', true)],
+      confirmed ? 'TRANSACTION SAVED' : 'REVIEW BEFORE SAVING',
+    ),
+    confirmed ? ['สรุปวันนี้', 'สรุปเดือนนี้', 'กราฟสัปดาห์'] : undefined,
+  );
 }
-const itemRows=(items:Item[])=>items.slice(0,6).map(item=>
- hbox([
-  {...vbox([text(item.merchant||'รายการใช้จ่าย','sm',C.ink,'bold'),
-     text(item.category||'อื่นๆ','xxs',C.muted)],'xs'),flex:3},
-  {...text((item.kind==='income'?'+':'−')+formatBaht(Math.round(Number(item.amount)*100)),
-    'md',item.kind==='income'?C.green:C.ink,'bold'),align:'end',flex:2}
- ])
-);
-export function receiptCard(items:Item[],week:WeeklyStatus,notice:string,confirmed:boolean){
- const total=items.reduce((n,item)=>n+Math.round(Number(item.amount)*100),0);
- const body:AnyNode[]=[
-  text(confirmed?'บันทึกรายการสำเร็จ':'ตรวจสอบรายการก่อนบันทึก','sm',C.muted),
-  text(formatBaht(total),'xxl',C.ink,'bold'),
-  divider(),...itemRows(items)
- ];
- if(items.length>6)body.push(text('และอีก '+(items.length-6)+' รายการ','xs',C.muted));
- if(week.limitSatang){body.push(divider(),weeklyMeter(week))}
- if(notice)body.push(divider(),{
-  type:'box',layout:'vertical',paddingAll:'12px',
-  backgroundColor:week.progress>=1?'#FFF1EB':'#FFF8EA',
-  contents:[text('💬 AI MONEY COACH','xs',C.warn,'bold'),text(notice,'sm',C.ink)]
- });
- return flexMessage(
-  confirmed?'MoneyFlow บันทึก '+items.length+' รายการแล้ว':'MoneyFlow รอยืนยัน '+items.length+' รายการ',
-  wrap(confirmed?'เรียบร้อยแล้ว ✓':'ตรวจสอบรายการ 🧾',
-   confirmed?'บันทึกเข้าบัญชีเงินของคุณแล้ว':'กรุณาตรวจข้อมูลก่อนบันทึก',
-   body,confirmed?[action('สรุปสัปดาห์','สรุปสัปดาห์'),action('ดูกราฟ','กราฟเดือนนี้')]:
-   [action('ยกเลิก','ยกเลิก'),action('ยืนยันบันทึก','ยืนยัน',true)]),
-   confirmed?['สรุปวันนี้','สรุปเดือนนี้','กราฟสัปดาห์']:undefined
- );
+export function summaryCard(
+  month: { month: string; incomeSatang: number; expenseSatang: number; savedSatang: number },
+  week?: WeeklyStatus,
+) {
+  const surplus = month.savedSatang >= 0;
+  const body: FlexNode[] = [
+    eyebrow('เดือน ' + month.month + ' / ภาพรวม'),
+    subCard(
+      [
+        eyebrow(surplus ? 'เงินคงเหลือสุทธิ' : 'รายจ่ายมากกว่ารายรับ'),
+        txt(formatBaht(month.savedSatang), 'xxl', surplus ? P.pine : P.red, 'bold'),
+        txt('รายรับ − รายจ่าย ในเดือนนี้', 'xs', P.soft),
+      ],
+      surplus ? P.mint : P.redBg,
+    ),
+    hbox([
+      card('↙ เงินเข้า', formatBaht(month.incomeSatang), P.green, P.canvas),
+      card('↗ เงินออก', formatBaht(month.expenseSatang), P.red, P.canvas),
+    ]),
+  ];
+  if (week) body.push(weeklyBlock(week));
+  return flexMessage(
+    'MoneyFlow สรุปเดือน ' + month.month,
+    makeBubble(
+      'เงินเดือนนี้เป็นยังไง',
+      'รายรับ รายจ่าย และงบที่ยังใช้ได้',
+      body,
+      [button('ดูรายจ่าย', 'กราฟเดือนนี้', true), button('งบสัปดาห์', 'สรุปสัปดาห์')],
+      'MONTHLY INSIGHT',
+    ),
+    ['กราฟสัปดาห์', 'หมวดไหนใช้เยอะสุด', 'สรุปวันนี้'],
+  );
 }
-export function summaryCard(month:{month:string;incomeSatang:number;expenseSatang:number;savedSatang:number},week?:WeeklyStatus){
- const contents:AnyNode[]=[
-  text('ภาพรวมเดือน '+month.month,'sm',C.muted),
-  hbox([text('รายรับ','sm'),{...text(formatBaht(month.incomeSatang),'md',C.green,'bold'),flex:1,align:'end'}]),
-  hbox([text('รายจ่าย','sm'),{...text(formatBaht(month.expenseSatang),'md',C.red,'bold'),flex:1,align:'end'}]),
-  divider(),hbox([text('สุทธิ','sm',C.ink,'bold'),{...text(formatBaht(month.savedSatang),'lg',C.ink,'bold'),flex:1,align:'end'}])
- ];
- if(week){contents.push(divider(),weeklyMeter(week))}
- return flexMessage('รายงานการเงิน '+month.month,
-  wrap('สรุปการเงิน 📊','สรุปข้อมูลจาก PostgreSQL',contents,
-  [action('กราฟเดือนนี้','กราฟเดือนนี้'),action('งบสัปดาห์','สรุปสัปดาห์')]),
-  ['กราฟสัปดาห์','หมวดไหนใช้เยอะสุด','สรุปวันนี้']);
+export function daySummaryCard(date: string, spent: number, income: number, week: WeeklyStatus) {
+  const body: FlexNode[] = [
+    eyebrow('วันที่ ' + date),
+    subCard([eyebrow('ใช้ไปวันนี้'), txt(formatBaht(spent), 'xxl', P.ink, 'bold')], P.canvas),
+    hbox([card('↙ รายรับ', formatBaht(income), P.green), card('↗ รายจ่าย', formatBaht(spent), P.red)]),
+    weeklyBlock(week),
+  ];
+  return flexMessage(
+    'MoneyFlow สรุปวันนี้ ' + date,
+    makeBubble(
+      'วันนี้เงินเป็นยังไง',
+      'เห็นยอดวันนี้แบบไม่ต้องคำนวณเอง',
+      body,
+      [button('สรุปสัปดาห์', 'สรุปสัปดาห์', true), button('ดูกราฟ', 'กราฟเดือนนี้')],
+      'DAILY SNAPSHOT',
+    ),
+  );
 }
-export function daySummaryCard(dayLabel:string,spent:number,income:number,week:WeeklyStatus){
- return flexMessage('MoneyFlow สรุปวันนี้ '+dayLabel,
-  wrap('สรุปวันนี้ ✨',dayLabel,[
-   hbox([text('รายรับ','sm'),{...text(formatBaht(income),'lg',C.green,'bold'),align:'end',flex:1}]),
-   hbox([text('รายจ่าย','sm'),{...text(formatBaht(spent),'lg',C.red,'bold'),align:'end',flex:1}]),
-   divider(),weeklyMeter(week)
-  ],[action('สรุปสัปดาห์','สรุปสัปดาห์'),action('กราฟ','กราฟเดือนนี้')])
- );
+export function weeklyCard(week: WeeklyStatus, notice = '') {
+  const hasLimit = week.limitSatang > 0;
+  const remain = week.remainingSatang;
+  const body: FlexNode[] = [
+    eyebrow('ช่วง ' + week.start + ' ถึง ' + week.end),
+    subCard(
+      [
+        eyebrow(!hasLimit ? 'ใช้ไปในสัปดาห์นี้' : remain < 0 ? 'ใช้เกินงบไป' : 'ยังใช้ได้อีก'),
+        txt(
+          formatBaht(!hasLimit ? week.spentSatang : Math.abs(remain)),
+          'xxl',
+          remain < 0 ? P.red : P.pine,
+          'bold',
+        ),
+        txt(
+          hasLimit ? 'จากงบ ' + formatBaht(week.limitSatang) : 'ยังไม่ได้กำหนดงบรายสัปดาห์',
+          'xs',
+          P.soft,
+        ),
+      ],
+      remain < 0 ? P.redBg : P.mint,
+    ),
+    weeklyBlock(week),
+  ];
+  if (notice) body.push(subCard([eyebrow('✦ ข้อแนะนำ', P.warm), txt(notice, 'sm')], P.amberBg));
+  return flexMessage(
+    'MoneyFlow สรุปงบ ' + week.start,
+    makeBubble(
+      'งบสัปดาห์ของคุณ',
+      'ใช้เงินอย่างมีแผน แบบที่คุณเลือกได้',
+      body,
+      [button('กราฟสัปดาห์', 'กราฟสัปดาห์', true), button('เดือนนี้', 'สรุปเดือนนี้')],
+      'WEEKLY BUDGET',
+    ),
+    ['กราฟสัปดาห์', 'เหลือใช้วันละเท่าไหร่'],
+  );
 }
-export function weeklyCard(week:WeeklyStatus,notice=''){
- const children:AnyNode[]=[
-  text('สัปดาห์ '+week.start+' ถึง '+week.end,'xs',C.muted),
-  text(formatBaht(week.spentSatang),'xxl',C.ink,'bold'),
-  text('รายจ่ายในสัปดาห์นี้','xs',C.muted),divider(),weeklyMeter(week)
- ];
- if(notice)children.push(divider(),text('💬 '+notice,'sm'));
- return flexMessage('MoneyFlow งบสัปดาห์ '+week.start,
-  wrap('งบสัปดาห์ 💚','แผนเดิมใช้ต่อทุกสัปดาห์',children,
-   [action('กราฟสัปดาห์','กราฟสัปดาห์'),action('เดือนนี้','สรุปเดือนนี้')]),
-  ['กราฟสัปดาห์','เหลือใช้วันละเท่าไหร่']
- );
+export function barChartCard(
+  title: string,
+  subtitle: string,
+  rows: { label: string; spentSatang: number }[],
+  back = 'สรุปสัปดาห์',
+) {
+  const sliced = rows.slice(0, 8);
+  const max = Math.max(1, ...sliced.map((x) => x.spentSatang));
+  const total = rows.reduce((sum, x) => sum + x.spentSatang, 0);
+  const body: FlexNode[] = [
+    subCard([eyebrow('รายจ่ายรวมในกราฟ'), txt(formatBaht(total), 'xxl', P.ink, 'bold')], P.mint),
+    ...(sliced.length
+      ? sliced.map((row, index) =>
+          vbox(
+            [
+              hbox([
+                { ...txt(row.label.slice(0, 34), 'sm', P.ink, 'bold'), flex: 1 },
+                { ...txt(formatBaht(row.spentSatang), 'sm', P.ink, 'bold'), align: 'end', flex: 1 },
+              ]),
+              meter(Math.max(0, row.spentSatang), max, index === 0 ? P.pine2 : P.green),
+            ],
+            'xs',
+          ),
+        )
+      : [txt('ยังไม่มีรายการใช้จ่ายสำหรับช่วงเวลานี้', 'sm', P.soft)]),
+  ];
+  if (rows.length > 8)
+    body.push(txt('แสดง 8 รายการแรกจากทั้งหมด ' + rows.length + ' รายการ', 'xxs', P.soft));
+  return flexMessage(
+    'MoneyFlow ' + title,
+    makeBubble(
+      title,
+      subtitle,
+      body,
+      [button('กลับไปสรุป', back), button('เช็กงบ', 'งบคงเหลือ', true)],
+      'SPENDING INSIGHT',
+    ),
+    ['สรุปวันนี้', 'กราฟเดือนนี้', 'กราฟสัปดาห์'],
+  );
 }
-export function barChartCard(title:string,subtitle:string,
- rows:{label:string;spentSatang:number}[],back='สรุปสัปดาห์'){
- const max=Math.max(1,...rows.map(x=>x.spentSatang));
- const chart=rows.map(row=>vbox([
-  hbox([text(row.label.slice(0,40),'sm',C.ink,'bold'),
-   {...text(formatBaht(row.spentSatang),'sm',C.ink),align:'end',flex:1}]),
-  {type:'box',layout:'horizontal',height:'10px',backgroundColor:'#E7EEE7',
-   contents:[
-    {type:'box',layout:'vertical',width:Math.max(1,Math.round(row.spentSatang/max*100))+'%',
-     height:'10px',backgroundColor:C.green,contents:[]}
-   ]}
- ],'xs'));
- return flexMessage('MoneyFlow '+title,wrap(title,subtitle,
-  chart.length?chart:[text('ยังไม่มีรายจ่ายในช่วงเวลานี้','sm',C.muted)],
-  [action('กลับไปสรุป',back),action('งบคงเหลือ','งบคงเหลือ')]),
-  ['สรุปวันนี้','กราฟเดือนนี้','กราฟสัปดาห์']);
+export const simpleHelpCard = (miniUrl?: string) => {
+  const body: FlexNode[] = [
+    subCard(
+      [eyebrow('บันทึกรายการใหม่'), txt('ลองพิมพ์ “กาแฟ 45 บาท” หรือส่งรูปใบเสร็จ', 'sm', P.ink)],
+      P.mint,
+    ),
+    detailRow('✦ ดูยอดวันนี้', 'พิมพ์ “สรุปวันนี้”'),
+    detailRow('✦ เช็กงบที่เหลือ', 'พิมพ์ “งบคงเหลือ”'),
+    detailRow('✦ ดูรายจ่ายตามหมวด', 'พิมพ์ “กราฟเดือนนี้”'),
+    detailRow('✦ เปิดสมุดเงิน', 'กดปุ่มด้านล่าง'),
+    txt('ทุกยอดตรวจสอบในสมุดเงินได้ และรายการที่ไม่ชัดเจนอาจต้องยืนยันก่อนบันทึก', 'xs', P.soft),
+  ];
+  const validMini =
+    typeof miniUrl === 'string' &&
+    /^https:\/\/liff\.line\.me\/[0-9]{5,20}-[A-Za-z0-9]{5,64}$/.test(miniUrl);
+  return flexMessage(
+    'วิธีใช้ MoneyFlow',
+    makeBubble(
+      'เริ่มตรงนี้ได้เลย',
+      'เรื่องเงินไม่ต้องยุ่งยาก เลือกสิ่งที่อยากทำ',
+      body,
+      [
+        button('สรุปสัปดาห์', 'สรุปสัปดาห์'),
+        validMini ? linkButton('เปิดสมุดเงินของฉัน', miniUrl!) : button('ดูกราฟ', 'กราฟเดือนนี้', true),
+      ],
+      'LET’S GET STARTED',
+    ),
+    ['สรุปเดือนนี้', 'กราฟเดือนนี้', 'งบคงเหลือ'],
+  );
+};
+
+/** Bank alert summaries share the same user-facing design as all other MoneyFlow cards. */
+export function bankReceiptCard(kind: 'income' | 'expense', amountSatang: number, bankName: string) {
+  if (!Number.isSafeInteger(amountSatang) || amountSatang <= 0) throw Error('Invalid bank amount');
+  const incoming = kind === 'income';
+  const label = incoming ? 'เงินเข้าบัญชี' : 'เงินออกจากบัญชี';
+  const body: FlexNode[] = [
+    hbox([eyebrow('บันทึกจากแจ้งเตือนธนาคาร', P.green), pill('✓ สำเร็จแล้ว')]),
+    subCard(
+      [
+        eyebrow(label),
+        txt(
+          (incoming ? '+' : '−') + formatBaht(amountSatang),
+          'xxl',
+          incoming ? P.green : P.red,
+          'bold',
+        ),
+        detailRow('จากแจ้งเตือน', bankName),
+      ],
+      incoming ? P.mint : P.redBg,
+    ),
+    txt('บันทึกรายการนี้ใน MoneyFlow แล้ว ตรวจสอบรายละเอียดและยอดกับแอปธนาคารได้ทุกเมื่อ', 'xs', P.soft),
+  ];
+  return flexMessage(
+    'MoneyFlow บันทึก' + (incoming ? 'เงินเข้า' : 'เงินออก') + 'จาก ' + bankName + ' แล้ว',
+    makeBubble(
+      'เงิน' + (incoming ? 'เข้า' : 'ออก') + 'เรียบร้อย',
+      'อัปเดตสมุดเงินของคุณแล้ว',
+      body,
+      [button('ดูสรุปวันนี้', 'สรุปวันนี้', true), button('เช็กงบ', 'งบคงเหลือ')],
+      'BANK ALERT • SAVED',
+    ),
+  );
 }
-export const simpleHelpCard=(miniUrl?:string)=>flexMessage(
- 'คำสั่ง MoneyFlow',wrap('สั่งงานได้ง่ายๆ','เลือกคำสั่งใน LINE เพื่อดูข้อมูล',[
-  text('🧾 กาแฟ 45 · พิมพ์รายจ่ายหรือส่งรูปใบเสร็จ'),
-  text('📊 สรุปวันนี้ / สรุปสัปดาห์ / สรุปเดือนนี้'),
-  text('📈 กราฟสัปดาห์ / กราฟเดือนนี้'),
-  text('💚 งบคงเหลือ / เหลือใช้วันละเท่าไหร่'),
-  text('🔐 Login 12345678 (ใส่รหัสจริงจากหน้าเว็บ)')
- ],[action('สรุปสัปดาห์','สรุปสัปดาห์'),
-     miniUrl ? linkAction('เปิดสมุดเงินของฉัน',miniUrl) : action('กราฟเดือนนี้','กราฟเดือนนี้')]),
- miniUrl ? ['สรุปเดือนนี้','กราฟเดือนนี้','งบคงเหลือ'] : undefined
-);
+export function bankUnrecognizedCard(bankName: string) {
+  return flexMessage(
+    'MoneyFlow ได้รับแจ้งเตือนจาก ' + bankName + ' แต่ยังไม่บันทึกรายการ',
+    makeBubble(
+      'มีรายการที่ต้องเช็ก',
+      'เรายังไม่เพิ่มรายการนี้เข้าบัญชี',
+      [
+        subCard(
+          [
+            eyebrow('ยังไม่ได้บันทึก', P.warm),
+            txt('ได้รับแจ้งเตือนจาก ' + bankName, 'sm', P.ink, 'bold'),
+            txt('ระบบยังอ่านยอดหรือประเภทเงินไม่ชัดเจน จึงไม่เดาหรือบันทึกแทนคุณ', 'sm', P.ink),
+          ],
+          P.amberBg,
+        ),
+        txt('กรุณาตรวจรายการจริงในแอปธนาคารก่อนบันทึกเอง', 'xs', P.soft),
+      ],
+      [button('เปิดสรุปวันนี้', 'สรุปวันนี้', true)],
+      'BANK ALERT • NEEDS REVIEW',
+    ),
+  );
+}
+
+export function dailyAllowanceCard(week: WeeklyStatus) {
+  const amount =
+    week.limitSatang > 0 ? Math.max(0, week.remainingSatang) / (week.daysLeftInWeek + 1) : 0;
+  return flexMessage(
+    'MoneyFlow เหลือใช้วันละ ' + formatBaht(amount),
+    makeBubble(
+      'ใช้ต่อได้วันละเท่าไหร่',
+      'วางแผนใช้เงินก่อนสัปดาห์ใหม่',
+      [
+        subCard(
+          [
+            eyebrow('งบที่ใช้ต่อได้ต่อวัน'),
+            txt(formatBaht(amount), 'xxl', P.pine, 'bold'),
+            txt('คำนวณจากงบที่เหลือและวันที่เหลือในสัปดาห์นี้', 'xs', P.soft),
+          ],
+          P.mint,
+        ),
+        weeklyBlock(week),
+      ],
+      [button('สรุปสัปดาห์', 'สรุปสัปดาห์', true), button('ดูกราฟ', 'กราฟสัปดาห์')],
+      'DAILY ALLOWANCE',
+    ),
+  );
+}
+export function savingsGoalCard(goalSatang: number, savedSatang: number) {
+  const hasGoal = goalSatang > 0;
+  const progress = hasGoal ? percentage(Math.max(0, savedSatang), goalSatang) : 0;
+  const body: FlexNode[] = [
+    subCard(
+      [
+        eyebrow(hasGoal ? 'เป้าหมายเก็บเงินเดือนนี้' : 'เริ่มต้นตั้งเป้าหมายออมเงิน'),
+        txt(hasGoal ? formatBaht(goalSatang) : 'ตั้งเป้าหมายของคุณ', 'xxl', P.pine, 'bold'),
+        ...(hasGoal
+          ? [
+              meter(Math.max(0, savedSatang), goalSatang, P.green),
+              detailRow(
+                'เงินสุทธิ ณ ตอนนี้',
+                formatBaht(savedSatang),
+                savedSatang >= 0 ? P.green : P.red,
+              ),
+              txt(
+                savedSatang >= goalSatang
+                  ? 'ถึงเป้าหมายแล้ว ยอดเยี่ยม!'
+                  : 'อีก ' + formatBaht(goalSatang - savedSatang) + ' ก็จะถึงเป้าหมาย',
+                'xs',
+                P.soft,
+              ),
+            ]
+          : [txt('ตั้งค่าได้ในหน้า MoneyFlow แล้วค่อยกลับมาตรวจความคืบหน้า', 'xs', P.soft)]),
+      ],
+      P.mint,
+    ),
+  ];
+  return flexMessage(
+    'MoneyFlow เป้าหมายการออม',
+    makeBubble(
+      'ค่อย ๆ ไปให้ถึงเป้าหมาย',
+      'ทุกก้าวเล็ก ๆ มีความหมาย',
+      body,
+      [button('สรุปเดือนนี้', 'สรุปเดือนนี้', true), button('ดูงบสัปดาห์', 'สรุปสัปดาห์')],
+      'SAVINGS PROGRESS',
+    ),
+  );
+}

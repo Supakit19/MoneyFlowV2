@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres';
+import { bankReceiptCard, bankUnrecognizedCard } from './line-flex.ts';
 
 export type BankReceipt = {
   kind: 'income' | 'expense';
@@ -59,7 +60,7 @@ export async function pushBankReceipt(
           },
           body: JSON.stringify({
             to: links[0].line_user_id,
-            messages: [{ type: 'text', text: bankReceiptText(receipt) }],
+            messages: [bankReceiptCard(receipt.kind, receipt.amountSatang, receipt.bank)],
           }),
           signal: AbortSignal.timeout(8000),
         });
@@ -120,12 +121,7 @@ export async function pushUnrecognizedBankAlert(
           },
           body: JSON.stringify({
             to: links[0].line_user_id,
-            messages: [
-              {
-                type: 'text',
-                text: `⚠️ MoneyFlow ได้รับแจ้งเตือนจาก ${source}\nแต่ไม่สามารถแยกยอดและประเภทเงินได้ จึงยังไม่ได้บันทึกรายการนี้\nกรุณาตรวจรายการในแอปธนาคาร`,
-              },
-            ],
+            messages: [bankUnrecognizedCard(source)],
           }),
           signal: AbortSignal.timeout(8000),
         });

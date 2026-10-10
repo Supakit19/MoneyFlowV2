@@ -10,7 +10,6 @@ import {
   monthCategoryChart,
   coachMessage,
   mustConfirm,
-  formatBaht,
   deterministicCoach,
   weekRange,
   budgetTier,
@@ -23,6 +22,8 @@ import {
   weeklyCard,
   barChartCard,
   simpleHelpCard,
+  dailyAllowanceCard,
+  savingsGoalCard,
 } from './line-flex.ts';
 import type { PublishFn } from './realtime.ts';
 
@@ -221,15 +222,21 @@ export async function handleLineMessage(event: any, { db, send, extract, publish
   const miniUrl = miniConfig.enabled ? 'https://liff.line.me/' + miniConfig.liffId : '';
   if (/^(ช่วยเหลือ|เมนู|help|คำสั่ง)$/i.test(raw)) return reply(simpleHelpCard(miniUrl));
   if (/^(เปิดเว็บ|เปิดสมุดเงิน|สมุดเงินของฉัน)$/i.test(raw))
-    return reply(lineErr(
-      miniUrl
-        ? '📒 เปิดสมุดเงินของคุณได้เลยครับ\n' + miniUrl
-        : '📒 หน้าจัดการเงินบนมือถือ: ' + (process.env.APP_PUBLIC_URL || 'https://moneyflow.aionixth.com') + '/mini\nหากยังไม่ได้เชื่อม LINE ให้เข้าสู่ระบบผ่านเว็บไซต์ MoneyFlow ก่อนครับ',
-    ));
+    return reply(
+      lineErr(
+        miniUrl
+          ? '📒 เปิดสมุดเงินของคุณได้เลยครับ\n' + miniUrl
+          : '📒 หน้าจัดการเงินบนมือถือ: ' +
+              (process.env.APP_PUBLIC_URL || 'https://moneyflow.aionixth.com') +
+              '/mini\nหากยังไม่ได้เชื่อม LINE ให้เข้าสู่ระบบผ่านเว็บไซต์ MoneyFlow ก่อนครับ',
+      ),
+    );
   if (/^ตั้งค่า$/i.test(raw))
-    return reply(lineErr(
-      'เข้าเว็บ MoneyFlow → จัดการเงินผ่าน LINE เพื่อปรับงบรายสัปดาห์ บุคลิกผู้ช่วย และวิธียืนยันรายการครับ',
-    ));
+    return reply(
+      lineErr(
+        'เข้าเว็บ MoneyFlow → จัดการเงินผ่าน LINE เพื่อปรับงบรายสัปดาห์ บุคลิกผู้ช่วย และวิธียืนยันรายการครับ',
+      ),
+    );
 
   if (/^(ยืนยัน|ตกลง|บันทึก)$/i.test(raw)) {
     const p = await db.unsafe(
@@ -294,37 +301,12 @@ export async function handleLineMessage(event: any, { db, send, extract, publish
       return reply(
         lineErr('ยังไม่ได้ตั้งงบรายสัปดาห์ ไปที่เว็บ MoneyFlow → งบประมาณ เพื่อตั้งงบก่อนครับ'),
       );
-    return reply(
-      lineErr(
-        '💚 สัปดาห์นี้ใช้อีกได้วันละประมาณ ' +
-          formatBaht(Math.max(0, week.remainingSatang) / (week.daysLeftInWeek + 1)) +
-          '\nเหลือ ' +
-          formatBaht(Math.max(0, week.remainingSatang)) +
-          ' จากงบ ' +
-          formatBaht(week.limitSatang) +
-          '\nอีก ' +
-          week.daysLeftInWeek +
-          ' วันก่อนขึ้นสัปดาห์ใหม่',
-      ),
-    );
+    return reply(dailyAllowanceCard(week));
   }
   if (/^(เป้าหมายการออม|การออม)$/i.test(raw)) {
     const month = await monthly();
     const target = Number(settings.savings_goal_satang);
-    return reply(
-      lineErr(
-        target > 0
-          ? '🎯 เป้าหมายออมเดือนนี้ ' +
-              formatBaht(target) +
-              '\nสุทธิรายรับ-รายจ่าย ' +
-              formatBaht(month.savedSatang) +
-              '\n' +
-              (month.savedSatang >= target
-                ? 'ทำได้ตามเป้าแล้ว!'
-                : 'ยังขาด ' + formatBaht(target - month.savedSatang) + ' ก่อนถึงเป้าหมาย')
-          : 'ยังไม่ได้ตั้งเป้าหมายออมในเว็บ MoneyFlow',
-      ),
-    );
+    return reply(savingsGoalCard(target, month.savedSatang));
   }
 
   let photo = false,

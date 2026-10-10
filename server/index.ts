@@ -86,7 +86,17 @@ const guarded = (fn: (ctx: any, u: string) => Promise<any>) => async (ctx: any) 
 const ai = () =>
   process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 async function extract(message: string, base64?: string, mime?: string) {
-  const prompt = `อ่านข้อมูลการเงินไทย แยกรายการรายรับ/รายจ่ายให้ถูกต้อง ตอบ JSON เท่านั้นรูปแบบ {"items":[{"kind":"expense","amount":65,"merchant":"ข้าว","category":"อาหาร","note":"","confidence":0.95}],"query":null} ถ้าผู้ใช้ถามยอด ให้ items=[] และ query="summary" ห้ามเดาตัวเลข ไม่มีรายการให้ items=[] การโอนระหว่างบัญชี/สลิปโอนให้ items=[] เพราะต้องระบุบัญชีต้นทางและปลายทาง: ${message}`;
+  const prompt = `คุณคือผู้ช่วยอ่านข้อความ/รูปภาพเพื่อเสนอรายการการเงินใน MoneyFlow
+ตอบ JSON เท่านั้น รูปแบบ {"items":[{"kind":"expense","amount":65,"merchant":"กาแฟ","category":"อาหาร","note":"","confidence":0.95}],"query":null}
+- ผู้ใช้ถามยอดหรือขอสรุป: items=[] และ query="summary"
+- รูปสลิปโอนเงิน/จ่ายเงินจากธนาคาร (เช่น K PLUS มีคำว่า "โอนเงินสำเร็จ"): ถ้าเห็นยอดเงินที่โอนจริงชัดเจน ให้เสนอ 1 รายการที่มี kind="expense", amount เป็นจำนวนเงินจริงที่โอน (ไม่ใช่ค่าธรรมเนียม/เลขอ้างอิง/เลขบัญชี), merchant เป็นชื่อผู้รับที่อ่านได้ หรือ "โอนเงิน", category="อื่นๆ", note="สลิปโอนเงิน รอผู้ใช้ตรวจสอบ" และ query="transfer_review" เสมอ ระบบจะถามผู้ใช้ก่อนบันทึก ห้ามถือว่าสลิปคือการซื้อของโดยอัตโนมัติ
+- ถ้าเป็นภาพหลักฐานเงินเข้าที่ชัดเจน ให้เสนอ kind="income" แต่ query="transfer_review" เพื่อขอผู้ใช้ยืนยันเช่นกัน
+- ถ้าอาจเป็นการโอนระหว่างบัญชีของตัวเอง ก็ยัง query="transfer_review" เสมอ ห้ามบันทึกอัตโนมัติ
+- สลิป 1 ใบเสนอได้สูงสุด 1 รายการ ห้ามนำเลขบัญชี/เลขอ้างอิง/ยอดคงเหลือมาเป็นจำนวนเงิน
+- หากอ่านจำนวนเงินจริงไม่ได้ชัดเจน ให้ items=[] แต่ถ้ารู้ว่าเป็นสลิปโอนเงินให้ query="transfer_review"
+- รายจ่ายปกติ เช่น "กาแฟ 55" หรือใบเสร็จสินค้าทั่วไป ให้แยกตามจริงและใช้ query=null
+- ห้ามเดาตัวเลขหรือชื่อผู้รับ หากข้อมูลไม่พอให้ items=[]
+ข้อความผู้ใช้: ${message}`;
   const gen = ai();
   if (gen) {
     const parts: any[] = [{ text: prompt }];
@@ -625,8 +635,10 @@ try {
   await sql.unsafe(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
   console.log('PostgreSQL migrated');
 } catch (e) {
-  console.error('PostgreSQL schema migration failed; refusing to serve traffic',
-    e instanceof Error ? e.name : 'unknown');
+  console.error(
+    'PostgreSQL schema migration failed; refusing to serve traffic',
+    e instanceof Error ? e.name : 'unknown',
+  );
   throw e;
 }
 setInterval(() => void workQueue(), 4000);

@@ -88,12 +88,12 @@ export function validateWeeklyPreferences(weekly:unknown,savings:unknown):FieldE
  if(s)errors.savings_goal=s;
  return errors;
 }
-export function validateLinePreferences(input:{confirmation_mode:string;coach_tone:string;coach_alerts:string;daily_digest_enabled:boolean;daily_digest_hour:number}):FieldErrors{
+export function validateLinePreferences(input:{confirmation_mode:string;coach_tone:string;coach_alerts:string;daily_digest_enabled?:boolean;daily_digest_hour?:number}):FieldErrors{
  const errors:FieldErrors={};
  if(!['always','smart','auto'].includes(input.confirmation_mode))errors.confirmation_mode='กรุณาเลือกโหมดยืนยันรายการ';
  if(!['polite','friend','roast'].includes(input.coach_tone))errors.coach_tone='กรุณาเลือกบุคลิก AI';
  if(!['every','once','off'].includes(input.coach_alerts))errors.coach_alerts='กรุณาเลือกรูปแบบการเตือน';
- if(input.daily_digest_enabled&&(!Number.isInteger(input.daily_digest_hour)||input.daily_digest_hour<0||input.daily_digest_hour>23)){
+ if(input.daily_digest_enabled&&(input.daily_digest_hour===undefined||!Number.isInteger(input.daily_digest_hour)||input.daily_digest_hour<0||input.daily_digest_hour>23)){
   errors.daily_digest_hour='กรุณาเลือกเวลารับรายงานที่ถูกต้อง';
  }
  return errors;

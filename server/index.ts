@@ -15,7 +15,6 @@ import { validateAmount, validLocalDate, validateAiText } from '../src/validatio
 import { startRealtime, type PublishFn } from './realtime.ts';
 import { fullFinanceOverview, setPreferences } from './moneyflow-features.ts';
 import { handleLineMessage } from './line-bot.ts';
-import { runDailyDigest } from './daily-digest.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
 import { createMiniAppRoutes } from './mini-app-auth.ts';
@@ -645,9 +644,6 @@ try {
   throw e;
 }
 setInterval(() => void workQueue(), 4000);
-// Opt-in only: this uses LINE Push quota, never enabled by default.
-setInterval(() => void runDailyDigest(sql), 60000);
-void runDailyDigest(sql);
 app.listen({ hostname: process.env.LISTEN_HOST || '127.0.0.1', port });
 publishFinance = startRealtime(sql, port + 50);
 console.log('MoneyFlow API http://127.0.0.1:' + port);

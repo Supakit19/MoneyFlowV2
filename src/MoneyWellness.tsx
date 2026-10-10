@@ -26,7 +26,6 @@ import {
   Wallet,
   CircleDollarSign,
   Sparkles,
-  AlarmClock,
 } from 'lucide-react';
 
 type Settings = {
@@ -303,8 +302,6 @@ export function FinanceSettings({
   const [mode, setMode] = useState<Settings['confirmation_mode']>('always');
   const [tone, setTone] = useState<Settings['coach_tone']>('friend');
   const [alert, setAlert] = useState<Settings['coach_alerts']>('every');
-  const [digest, setDigest] = useState(false);
-  const [hour, setHour] = useState(20);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeError, setNoticeError] = useState(false);
@@ -327,8 +324,6 @@ export function FinanceSettings({
     setMode(s.confirmation_mode);
     setTone(s.coach_tone);
     setAlert(s.coach_alerts);
-    setDigest(s.daily_digest_enabled);
-    setHour(s.daily_digest_hour);
   }, [overview?.settings]);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -341,8 +336,6 @@ export function FinanceSettings({
             confirmation_mode: mode,
             coach_tone: tone,
             coach_alerts: alert,
-            daily_digest_enabled: digest,
-            daily_digest_hour: hour,
           });
     setErrors(problems);
     if (Object.keys(problems).length) {
@@ -364,8 +357,6 @@ export function FinanceSettings({
               confirmation_mode: mode,
               coach_tone: tone,
               coach_alerts: alert,
-              daily_digest_enabled: digest,
-              daily_digest_hour: Number(hour),
             };
       const r = await fetch('/api/finance/preferences', {
         method: 'PUT',
@@ -563,55 +554,6 @@ export function FinanceSettings({
                     <strong>{item.name}</strong>
                   </label>
                 ))}
-              </div>
-            </div>
-            <div className="mf-setting-section mf-digest-section">
-              <div className="mf-toggle-row">
-                <div>
-                  <h4>
-                    <AlarmClock size={18} /> รายงานสรุปอัตโนมัติทุกวัน
-                  </h4>
-                  <p>
-                    ให้ MoneyFlow ส่งสรุปรายรับรายจ่ายให้ทาง LINE ตามเวลาที่เลือก (เฉพาะเมื่อเชื่อม LINE)
-                  </p>
-                </div>
-                <label className="mf-toggle">
-                  <input
-                    type="checkbox"
-                    checked={digest}
-                    onChange={(e) => setDigest(e.target.checked)}
-                  />
-                  <span />
-                </label>
-              </div>
-              {digest && (
-                <label className="mf-field mf-hour">
-                  <span>เวลาส่งรายงาน (เวลาไทย)</span>
-                  <select
-                    value={hour}
-                    aria-invalid={!!errors.daily_digest_hour}
-                    aria-describedby={errors.daily_digest_hour ? 'mf-digest-hour-error' : undefined}
-                    onChange={(e) => {
-                      setHour(Number(e.target.value));
-                      clearField('daily_digest_hour');
-                    }}
-                  >
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={i}>
-                        {String(i).padStart(2, '0')}:00 น.
-                      </option>
-                    ))}
-                  </select>
-                  {errors.daily_digest_hour && (
-                    <small className="mf-field-error" id="mf-digest-hour-error">
-                      {errors.daily_digest_hour}
-                    </small>
-                  )}
-                </label>
-              )}
-              <div className="mf-plan-warning">
-                รายงานอัตโนมัติใช้ LINE Push API และนับในโควตาข้อความของ LINE OA
-                ส่วนการตอบกลับเมื่อคุณส่งข้อความไม่ใช้โควตา Push
               </div>
             </div>
           </>

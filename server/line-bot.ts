@@ -341,10 +341,11 @@ export async function handleLineMessage(event: any, { db, send, extract, publish
   }
   // Text that sounds like a question or a bank transfer should never auto-post.
   const queryLike = /\?|เท่าไหร่|ไหม|หรือไม่|โอนไป|โอนจาก/.test(raw);
-  // A transfer slip may be payment or movement between the user's own accounts.
-  // Never post it automatically, even when the user's setting is "auto".
+  // Follow this user's confirmation preference even for transfer slips.
+  // "always" confirms all; "smart" confirms images and uncertain amounts;
+  // "auto" saves only clear, high-confidence items.
   const transferReview = extracted.query === 'transfer_review';
-  const confirm = transferReview || queryLike || mustConfirm(settings.confirmation_mode, items, photo);
+  const confirm = queryLike || mustConfirm(settings.confirmation_mode, items, photo);
   if (confirm) {
     await db.unsafe('DELETE FROM pending WHERE user_id=$1 AND line_user_id=$2', [userId, lineId]);
     await db.unsafe(

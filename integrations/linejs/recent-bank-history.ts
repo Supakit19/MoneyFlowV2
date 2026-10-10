@@ -10,6 +10,12 @@ export type BankHistoryMessage = {
 };
 export const HISTORY_BACKFILL_MS = 30 * 60 * 1000;
 
+/** Scope in-memory delivery caches by bank sender as well as LINE message ID. */
+export function bankDeliveryKey(senderMid: string, messageId: string): string | null {
+  if (!/^u[0-9a-f]{32}$/i.test(senderMid) || !/^\d{5,30}$/.test(messageId)) return null;
+  return `${senderMid.toLowerCase()}:${messageId}`;
+}
+
 export function historyMessageTime(value: unknown): number | null {
   if (typeof value !== 'number' && typeof value !== 'bigint' && typeof value !== 'string') return null;
   const n = Number(value);

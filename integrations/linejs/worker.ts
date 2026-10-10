@@ -23,7 +23,7 @@ import {
 import { FileStorage } from '@evex/linejs/storage';
 import { EncryptedLineStorage } from './encrypted-storage.ts';
 import { vaultKey } from '../../shared/linejs-vault.ts';
-import { HISTORY_BACKFILL_MS, recentBankMessages } from './recent-bank-history.ts';
+import { HISTORY_BACKFILL_MS, bankDeliveryKey, recentBankMessages } from './recent-bank-history.ts';
 import { parseBankAlertFromSources } from '../../server/bank-source-parser.ts';
 import {
   parseSignedBankNotification,
@@ -411,7 +411,8 @@ function handleBankMessage(m: any) {
     if (m?.isMyMessage || m?.isEdited) return;
     const from = String(m?.from?.id || '').toLowerCase();
     const id = String(m?.raw?.id || '');
-    if (!/^u[0-9a-f]{32}$/.test(from) || !/^\d{5,30}$/.test(id)) return;
+    const deliveryKey = bankDeliveryKey(from, id);
+    if (!deliveryKey) return;
 
     // Parse only local text/Flex nodes; never fetch images or expose raw chats.
     const content = extractLineBankContent(m.raw || {});
@@ -449,22 +450,22 @@ function handleBankMessage(m: any) {
       }
       return;
     }
-    reportSeen(id);
-    if (recentlyForwarded.has(id) || inFlight.has(id)) return;
+    reportSeen(deliveryKey);
+    if (recentlyForwarded.has(deliveryKey) || inFlight.has(deliveryKey)) return;
     if (!combinedText || !isActionableBankAlert(combinedText)) {
-      reportSkipped(id);
+      reportSkipped(deliveryKey);
       return;
     }
-    inFlight.add(id);
+    inFlight.add(deliveryKey);
     void sendBankAlert(id, from, text, content.sourceFormat, altText, rawText)
       .then((outcome) => {
-        if (outcome) remember(recentlyForwarded, id);
+        if (outcome) remember(recentlyForwarded, deliveryKey);
       })
       .catch(() => {
         // Transient failures are retried on the next bank-history fetch.
         console.warn('[LINEJS] Bank alert delivery failed (no content logged).');
       })
-      .finally(() => inFlight.delete(id));
+      .finally(() => inFlight.delete(deliveryKey));
   } catch {
     console.warn('[LINEJS] Unsupported incoming notification; no content logged.');
   }

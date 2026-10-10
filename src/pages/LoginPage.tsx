@@ -31,6 +31,9 @@ export default function LoginPage({ onAuthenticated, onError, onPreview, error }
             ทุกช่องทางที่เชื่อมจะกลับมาที่ข้อมูลบัญชีเดียวกัน
           </p>
         </div>
+        <Link to="/#line" className="auth-back-home auth-add-line-link">
+          <ArrowUpRight size={15} /> อยากเริ่มใน LINE? สแกน QR เพิ่มเพื่อน MoneyFlow ก่อน
+        </Link>
         <AuthPortal onAuthenticated={onAuthenticated} onError={onError} />
         {error && (
           <p className="error auth-error-visible" role="alert">

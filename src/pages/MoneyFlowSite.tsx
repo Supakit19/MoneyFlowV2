@@ -17,6 +17,7 @@ import {
   Wallet,
   Zap,
 } from 'lucide-react';
+import LineAddFriend from '../components/LineAddFriend';
 import './MoneyFlowSite.css';
 
 const pocketUrl = 'https://liff.line.me/2011955989-OUGIQOBk';
@@ -54,8 +55,8 @@ function SiteHeader({ company = false }: { company?: boolean }) {
           <a onClick={() => setOpen(false)} href="/#features">
             ฟีเจอร์
           </a>
-          <a onClick={() => setOpen(false)} href="/#how">
-            เริ่มต้นใช้งาน
+          <a onClick={() => setOpen(false)} href="/#line">
+            เพิ่มเพื่อน LINE
           </a>
           <Link onClick={() => setOpen(false)} to="/company" aria-current={company ? 'page' : undefined}>
             เกี่ยวกับเรา
@@ -82,7 +83,7 @@ function SiteFooter() {
         </div>
         <div className="mf-site-footer-links">
           <a href="/#features">ฟีเจอร์</a>
-          <a href="/#how">วิธีใช้</a>
+          <a href="/#line">เพิ่มเพื่อน LINE</a>
           <Link to="/company">เกี่ยวกับเรา</Link>
           <Link to="/login">เข้าสู่ระบบ</Link>
         </div>
@@ -283,11 +284,11 @@ export default function LandingPage() {
                 </Link>
                 <a
                   className="mf-site-ghost-button"
-                  href={pocketUrl}
+                  href="#line"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <MessageCircle size={18} /> เปิดผ่าน LINE
+                  <MessageCircle size={18} /> เพิ่มเพื่อน LINE
                 </a>
               </div>
               <div className="mf-site-hero-note">
@@ -331,6 +332,8 @@ export default function LandingPage() {
             <span>หลายบัญชีในที่เดียว</span>
           </div>
         </section>
+
+        <LineAddFriend />
 
         <section className="mf-site-section mf-site-features" id="features">
           <div className="mf-site-section-top">
@@ -491,8 +494,8 @@ export default function LandingPage() {
               <div className="mf-site-step-icon">
                 <MessageCircle size={29} />
               </div>
-              <h3>เชื่อม LINE เมื่อพร้อม</h3>
-              <p>พิมพ์รายการในแชต หรือเปิดหน้าจัดการเงินจากเมนู LINE</p>
+              <h3>เพิ่มเพื่อนและเชื่อม LINE</h3>
+              <p>สแกน QR หรือกดเพิ่มเพื่อนก่อน แล้วเชื่อมบัญชี MoneyFlow เพื่อใช้แชตบันทึกเงิน</p>
             </div>
             <div className="mf-site-step">
               <span>03</span>

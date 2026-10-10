@@ -109,6 +109,18 @@ async function getLineOfficialAccountId(): Promise<string | null> {
 export function createAuthRoutes(sql: Sql) {
   return (
     new Elysia({ name: 'moneyflow-auth-methods' })
+      // Public profile identifier only. The Messaging API access token stays on the server.
+      // Visitors can add the real MoneyFlow LINE OA before creating an account.
+      .get('/api/public/line-oa', async (ctx: any) => {
+        const basicId = await getLineOfficialAccountId();
+        if (!basicId) {
+          ctx.set.status = 503;
+          ctx.set.headers['Cache-Control'] = 'no-store';
+          return { available: false };
+        }
+        ctx.set.headers['Cache-Control'] = 'public, max-age=300';
+        return { available: true, basicId };
+      })
       // LINE OAuth QR login temporarily disabled. Keep the original LINE chat-code login.
       .post('/api/auth/email/register', async (ctx: any) => {
         const origin = originError(ctx);

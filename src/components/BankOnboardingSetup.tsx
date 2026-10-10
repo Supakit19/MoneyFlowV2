@@ -164,11 +164,11 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
       return;
     }
     if (!senderMid || !/^u[0-9a-f]{32}$/i.test(senderMid)) {
-      setFailure('กรุณาเลือก Sender MID ของธนาคารที่ถูกต้อง');
+      setFailure('กรุณาเลือกแชตแจ้งเตือนของธนาคารที่ถูกต้อง');
       return;
     }
     if (!hasVerifiedSender && !saved) {
-      setFailure('โปรดยืนยันว่า Sender MID นี้มาจากแชตธนาคารจริง');
+      setFailure('กรุณายืนยันว่าแชตที่เลือกเป็นของธนาคารจริง');
       return;
     }
     if (enabled && chosenBank === 'kbank' && !riskAccepted && !saved) {
@@ -226,7 +226,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
         <div className="bank-onboard-notice">
           <AlertCircle size={18} />
           <span>
-            {agent?.reason || 'เซิร์ฟเวอร์ยังไม่เปิดระบบเชื่อม LINEJS'} —
+            {agent?.reason || 'ยังไม่พร้อมเชื่อม LINE กับธนาคาร'} —
             ข้ามขั้นตอนนี้และกลับมาเชื่อมภายหลังได้
           </span>
         </div>
@@ -237,7 +237,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
             <div>
               <strong>{statusTitle[agent?.state || 'stopped'] || 'กำลังตรวจสถานะ LINE'}</strong>
               <small>
-                {useLegacy ? 'เชื่อมผ่าน Mac ของคุณ' : 'แยก LINE Session ของคุณบนเซิร์ฟเวอร์'}
+                {useLegacy ? 'เชื่อมผ่าน Mac ของคุณ' : 'เก็บข้อมูลเชื่อมต่อ LINE ของคุณแยกจากผู้ใช้อื่น'}
               </small>
             </div>
           </div>
@@ -252,7 +252,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
               {busy
                 ? 'กำลังเชื่อมต่อ...'
                 : hosted?.connected
-                  ? 'เริ่ม LINEJS ต่อ'
+                  ? 'เริ่มรับแจ้งเตือนอีกครั้ง'
                   : 'เชื่อม LINE ด้วย QR'}
               <ArrowRight size={17} />
             </button>
@@ -277,7 +277,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
           )}
           {agent?.state === 'error' && (
             <p className="bank-onboard-hint">
-              เชื่อมต่อหลุด? กดเริ่ม LINEJS อีกครั้ง หรือกลับมาเชื่อมภายหลัง
+              เชื่อมต่อหลุด? กดเริ่มรับแจ้งเตือนอีกครั้ง หรือกลับมาเชื่อมภายหลัง
             </p>
           )}
           {canSetup && (
@@ -330,13 +330,13 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
                 </button>
               )}
               <label className="bank-onboard-field">
-                Sender MID ของแชตธนาคาร
+                รหัสแชตแจ้งเตือนของธนาคาร
                 <input
                   value={senderMid}
                   maxLength={33}
                   spellCheck={false}
                   autoComplete="off"
-                  placeholder="u ตามด้วยอักษรและตัวเลข 32 ตัว"
+                  placeholder="กดเลือกแชตแจ้งเตือนที่พบด้านบน"
                   disabled={busy}
                   onChange={(e) => {
                     setSenderMid(e.target.value.trim());
@@ -352,7 +352,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
                   disabled={busy || saved}
                   onChange={(e) => setHasVerifiedSender(e.target.checked)}
                 />
-                <span>ฉันตรวจแล้วว่า Sender MID นี้เป็นแชตธนาคารจริง</span>
+                <span>ฉันตรวจสอบแล้วว่าแชตนี้เป็นของธนาคารที่เลือกจริง</span>
               </label>
               <label className="bank-onboard-check">
                 <input
@@ -391,11 +391,11 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
                       setSaved(false);
                     }}
                   />
-                  <span>แจ้งรายการที่บันทึกสำเร็จกลับ LINE OA</span>
+                  <span>แจ้งผลการบันทึกกลับในแชต MoneyFlow</span>
                 </label>
               ) : (
                 <p className="bank-onboard-hint">
-                  ต้องเชื่อม LINE OA ในขั้นก่อนหน้า จึงจะเปิดแจ้งกลับ LINE OA ได้
+                  กรุณาเชื่อมแชต MoneyFlow ก่อน เพื่อรับข้อความยืนยันรายการ
                 </p>
               )}
               <button
@@ -436,7 +436,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
       )}
       <div className="bank-onboard-privacy">
         <ShieldCheck size={17} />
-        LINEJS ไม่ใช่บริการทางการของธนาคารหรือ LINE อาจอ่านข้อมูลผิดหรือรับแจ้งเตือนไม่ครบ
+        วิธีรับแจ้งเตือนนี้ไม่ใช่บริการทางการของธนาคารหรือ LINE อาจอ่านข้อมูลผิดหรือได้รับไม่ครบ
         กรุณาตรวจยอดกับแอปธนาคาร และยกเลิกเชื่อมได้ภายหลัง
       </div>
       <button

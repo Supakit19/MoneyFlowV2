@@ -85,11 +85,11 @@ export default function LineJsHostedAgent({
     if (name === 'connect' || name === 'disconnect') {
       const consent = await askConfirm({
         title:
-          name === 'connect' ? 'เชื่อม LINE ส่วนตัวเข้ากับ MoneyFlow?' : 'ยกเลิกและลบ LINE Session นี้?',
+          name === 'connect' ? 'เชื่อม LINE ส่วนตัวเข้ากับ MoneyFlow?' : 'ยกเลิกการเชื่อม LINE นี้?',
         description:
           name === 'connect'
-            ? 'คุณจะสแกน QR ด้วย LINE ของคุณเอง MoneyFlow จะอ่านเฉพาะแจ้งเตือนของธนาคารที่เลือก Session จะถูกเข้ารหัสและเก็บบนเซิร์ฟเวอร์ ไม่แชร์กับผู้ใช้คนอื่น'
-            : 'MoneyFlow จะหยุด Worker ลบ Session ที่เก็บบนเซิร์ฟเวอร์ และหยุดรับแจ้งเตือน คุณควรถอนสิทธิ์อุปกรณ์ที่ LINE > ตั้งค่า > อุปกรณ์ที่เข้าสู่ระบบด้วย',
+            ? 'คุณจะสแกน QR ด้วย LINE ของคุณเอง MoneyFlow จะอ่านเฉพาะแจ้งเตือนของธนาคารที่เลือก ข้อมูลสำหรับเชื่อมต่อจะถูกเข้ารหัสและแยกจากผู้ใช้อื่น'
+            : 'MoneyFlow จะหยุดการรับแจ้งเตือนและลบข้อมูลสำหรับเชื่อมต่อ LINE ที่เก็บไว้ คุณควรถอนสิทธิ์อุปกรณ์ที่ LINE > ตั้งค่า > อุปกรณ์ที่เข้าสู่ระบบด้วย',
         confirmLabel: name === 'connect' ? 'ตกลง เชื่อม LINE' : 'ยกเลิกการเชื่อมต่อ',
         tone: name === 'connect' ? 'normal' : 'danger',
       });
@@ -103,9 +103,9 @@ export default function LineJsHostedAgent({
         name === 'connect'
           ? 'เริ่มเชื่อม LINE แล้ว สแกน QR เมื่อแสดง'
           : name === 'start'
-            ? 'เริ่มตัวรับ LINEJS แล้ว'
+            ? 'เริ่มรับแจ้งเตือนจากธนาคารแล้ว'
             : name === 'stop'
-              ? 'หยุดตัวรับ LINEJS แล้ว'
+              ? 'หยุดรับแจ้งเตือนจากธนาคารแล้ว'
               : 'ยกเลิกและลบ Session จากเซิร์ฟเวอร์แล้ว',
         'success',
       );
@@ -120,14 +120,14 @@ export default function LineJsHostedAgent({
   if (demoMode) return null;
   const a = result?.agent;
   return (
-    <div className="mf-agent-card" aria-label="Hosted LINEJS Connector">
+    <div className="mf-agent-card" aria-label="เชื่อม LINE เพื่อรับแจ้งเตือนธนาคาร">
       <div className="mf-agent-heading">
         <span className="mf-agent-symbol">
           <Server size={20} />
         </span>
         <div>
           <strong>เชื่อม LINE ของคุณเอง</strong>
-          <p>เชื่อมผ่านเว็บโดยไม่ต้องลงโปรแกรม เมื่อ MoneyFlow รันบน VPS คุณไม่ต้องเปิดคอมค้างไว้</p>
+          <p>เชื่อมจากหน้านี้ครั้งเดียว จากนั้นรับแจ้งเตือนได้แม้ไม่ได้เปิดคอมพิวเตอร์</p>
         </div>
         <span className={'mf-agent-state ' + (a?.running ? 'active' : '')}>
           <span /> {a?.running ? 'ทำงานอยู่' : 'ยังไม่ทำงาน'}
@@ -140,7 +140,7 @@ export default function LineJsHostedAgent({
       ) : !a.available ? (
         <div className="mf-agent-notice">
           <AlertTriangle size={17} />
-          <span>{a.reason || 'Hosted Connector ไม่พร้อมใช้'} กรุณาแจ้งผู้ดูแล MoneyFlow</span>
+          <span>{a.reason || 'ยังไม่พร้อมเชื่อม LINE'} กรุณาแจ้งผู้ดูแล MoneyFlow</span>
         </div>
       ) : (
         <>
@@ -229,12 +229,12 @@ export default function LineJsHostedAgent({
               <strong>
                 <ShieldCheck size={16} /> พบแชตที่อาจเป็นธนาคาร
               </strong>
-              <small>ตรวจว่าเป็นแชต KBank Live หรือ Krungthai Connext จริงก่อนเลือก</small>
+              <small>กรุณาเปิดแชตใน LINE ตรวจชื่อและเครื่องหมายรับรองของธนาคารก่อนเลือก</small>
               {(a.candidateMids?.length ? a.candidateMids : [a.candidateMid]).map((mid) => (
                 <div className="mf-agent-candidate" key={mid}>
                   <code>{mid}</code>
                   <button type="button" onClick={() => onCandidate?.(mid)}>
-                    เลือกแชตนี้
+                    ใช้แชตนี้
                   </button>
                 </div>
               ))}
@@ -252,8 +252,7 @@ export default function LineJsHostedAgent({
             </div>
           )}
           <p className="mf-agent-footnote">
-            แยก Session และ Token ต่อผู้ใช้ · เซิร์ฟเวอร์เก็บ Session แบบเข้ารหัส · LINEJS
-            ไม่ใช่บริการทางการของ LINE หรือธนาคาร
+            ข้อมูลเชื่อมต่อของแต่ละคนถูกเก็บแยกและเข้ารหัส · วิธีอ่านแจ้งเตือนไม่ใช่บริการทางการจาก LINE หรือธนาคาร
           </p>
         </>
       )}

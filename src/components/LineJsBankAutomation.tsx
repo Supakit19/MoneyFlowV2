@@ -90,7 +90,7 @@ export default function LineJsBankAutomation() {
       setEvents(eventsResult.events || []);
       setLoaded(true);
     } catch (error: any) {
-      notify(error.message || 'ไม่สามารถอ่านสถานะ LINEJS', 'error');
+      notify(error.message || 'ไม่สามารถตรวจสอบการเชื่อมต่อ LINE', 'error');
     } finally {
       setLoading(false);
     }
@@ -131,7 +131,7 @@ export default function LineJsBankAutomation() {
         accountId: next.accountId,
       });
       setOptions({ ...EMPTY, ...result.settings });
-      notify('บันทึกการตั้งค่า LINEJS แล้ว', 'success');
+      notify('บันทึกการเชื่อมต่อธนาคารแล้ว', 'success');
       await reload();
     } catch (error: any) {
       notify(error.message || 'ไม่สามารถบันทึกการตั้งค่าได้', 'error');
@@ -143,7 +143,7 @@ export default function LineJsBankAutomation() {
   async function addExtra() {
     if (saving || demoMode) return;
     if (!/^u[0-9a-f]{32}$/i.test(newSenderMid) || !newAccountId || !verifiedExtraMid) {
-      notify('กรุณาตรวจแชตธนาคาร เลือกบัญชีเงิน และยืนยัน Sender MID ก่อนเพิ่ม', 'warning');
+      notify('กรุณาเลือกแชตของธนาคาร เลือกบัญชีที่จะบันทึก และยืนยันว่าเป็นแชตจริง', 'warning');
       return;
     }
     if (newBank === options.bank && options.senderMid) {
@@ -155,7 +155,7 @@ export default function LineJsBankAutomation() {
         (source) => source.bank === newBank || source.senderMid === newSenderMid.toLowerCase(),
       )
     ) {
-      notify('ธนาคารหรือ Sender MID นี้ถูกเพิ่มไว้แล้ว', 'warning');
+      notify('แชตธนาคารนี้ถูกเพิ่มไว้แล้ว', 'warning');
       return;
     }
     await save({
@@ -175,14 +175,14 @@ export default function LineJsBankAutomation() {
       (!options.tokenConfigured ||
         ((!options.senderMid || !options.accountId) && !options.extraSources.some((x) => x.enabled)))
     ) {
-      notify('เชื่อม Worker เลือกบัญชี และระบุ Sender MID ก่อนเปิด Flow', 'warning');
+      notify('กรุณาเชื่อม LINE เลือกแชตธนาคาร และเลือกบัญชีที่จะบันทึกก่อน', 'warning');
       return;
     }
     if (nextEnabled) {
       const accepted = await askConfirm({
         title: 'เปิดรับแจ้งเตือนธนาคาร?',
         description:
-          'MoneyFlow จะใช้เครื่องหมาย +/- ก่อน ถ้ารู้ว่าเงินเข้าจะบันทึกรายรับ หากอ่านยอดรายการ KBank Live ได้แต่แยกประเภทไม่ได้ จะตั้งต้นเป็นรายจ่ายตามกฎที่กำหนด ซึ่งอาจผิดประเภทได้เมื่อธนาคารส่งข้อมูลไม่ครบ แจ้ง LINE OA เมื่อเปิดสวิตช์แจ้งกลับ กรุณาตรวจรายการเป็นระยะ',
+          'MoneyFlow จะอ่านแจ้งเตือนจากแชตธนาคารที่คุณเลือกเท่านั้น ถ้าเป็นเงินเข้าจะบันทึกเป็นรายรับ ถ้าเป็นเงินออกจะบันทึกเป็นรายจ่าย แต่บางแจ้งเตือนของกสิกรที่มีแค่ยอดเงินอาจถูกนับเป็นรายจ่ายก่อน จึงควรตรวจสอบรายการกับแอปธนาคารเป็นระยะ',
         confirmLabel: 'เปิดรับและบันทึกอัตโนมัติ',
         tone: 'normal',
       });
@@ -200,7 +200,7 @@ export default function LineJsBankAutomation() {
           </span>
           <div>
             <div className="mf-bank-tagline">
-              <span /> LINEJS · ธนาคาร
+              <span /> จัดการธนาคารผ่าน LINE
             </div>
             <h3 id="bank-linejs-title">รับรายการเงินเข้า–ออกอัตโนมัติ</h3>
             <p>เชื่อม KBank Live และ Krungthai Connext ผ่าน LINE เดียว เลือกบัญชีที่บันทึกแยกกันได้</p>
@@ -217,10 +217,10 @@ export default function LineJsBankAutomation() {
           if (options.senderMid) {
             setNewSenderMid(mid);
             setVerifiedExtraMid(false);
-            notify('พบ Sender MID อีกแชต กรุณาตรวจธนาคารและเลือกบัญชีปลายทางก่อนเพิ่ม', 'info');
+            notify('พบแชตแจ้งเตือนอีกแห่งแล้ว กรุณาตรวจสอบธนาคารและเลือกบัญชีที่จะบันทึก', 'info');
           } else {
             update('senderMid', mid);
-            notify('พบ Sender MID กรุณาตรวจสอบว่าเป็นธนาคารจริงแล้วกดบันทึกการตั้งค่า', 'info');
+            notify('พบแชตแจ้งเตือนแล้ว กรุณาตรวจสอบว่าเป็นธนาคารจริง แล้วกดบันทึก', 'info');
           }
         }}
       />
@@ -230,7 +230,7 @@ export default function LineJsBankAutomation() {
           <label className="mf-bank-toggle">
             <span className="mf-bank-toggle-copy">
               <strong>เปิดรับแจ้งเตือนและบันทึกเงินอัตโนมัติ</strong>
-              <small>ใช้ LINEJS Hosted บน VPS ได้ ไม่ต้องเปิด Mac ค้างไว้</small>
+              <small>รับข้อความได้ต่อเนื่อง แม้คุณปิดคอมพิวเตอร์</small>
             </span>
             <input
               type="checkbox"
@@ -246,16 +246,16 @@ export default function LineJsBankAutomation() {
           </label>
           <label className="mf-bank-toggle">
             <span className="mf-bank-toggle-copy">
-              <strong>แจ้งกลับ LINE OA เมื่อบันทึกรายการสำเร็จ</strong>
+              <strong>ส่งข้อความกลับในแชต MoneyFlow เมื่อบันทึกสำเร็จ</strong>
               <small>
-                ส่งยอดเงินเข้า/ออกกลับไปที่ LINE OA ที่เชื่อมกับบัญชี MoneyFlow นี้
-                ไม่ส่งเมื่ออ่านรายการไม่ได้
+                เมื่อบันทึกยอดสำเร็จ จะส่งผลกลับไปที่แชต MoneyFlow ที่คุณเชื่อมไว้
+                รายการที่อ่านไม่ชัดจะไม่นำไปบันทึก
               </small>
             </span>
             <input
               type="checkbox"
               role="switch"
-              aria-label="แจ้งผลการบันทึกกลับ LINE OA"
+              aria-label="แจ้งผลการบันทึกในแชต MoneyFlow"
               checked={options.pushLine}
               disabled={demoMode || saving || !loaded}
               onChange={(e) => update('pushLine', e.target.checked)}
@@ -311,8 +311,8 @@ export default function LineJsBankAutomation() {
           <div className="mf-bank-extras">
             <strong>แชตธนาคารเพิ่มเติม · LINE เดียวกัน</strong>
             <p>
-              แยก Sender MID และบัญชีเงินของกสิกร/กรุงไทย ไม่ต้องสแกน QR อีกครั้ง —
-              ควรสร้างบัญชีกรุงไทยในหน้า “บัญชีเงิน” ก่อน
+              กสิกรและกรุงไทยใช้ LINE เดียวกันได้ แต่บันทึกแยกบัญชีเงินกัน
+              เพิ่มบัญชีกรุงไทยในหน้า “บัญชีและกระเป๋า” ก่อน หากยังไม่มี
             </p>
             {options.extraSources.map((source) => (
               <div className="mf-bank-extra-item" key={source.bank}>
@@ -321,7 +321,7 @@ export default function LineJsBankAutomation() {
                   <small>
                     {live.accounts.find((account) => account.id === source.accountId)?.name ||
                       'บัญชีเดิมถูกลบ'}
-                    {' · '}Sender MID ตรวจสอบแล้ว
+                    {' · '}ตรวจสอบแชตแล้ว
                   </small>
                 </div>
                 <label className="mf-bank-extra-toggle">
@@ -349,7 +349,7 @@ export default function LineJsBankAutomation() {
                   onClick={() =>
                     void (async () => {
                       const yes = await askConfirm({
-                        title: 'นำธนาคารนี้ออกจาก LINEJS?',
+                        title: 'หยุดเชื่อมธนาคารนี้?',
                         description: 'หยุดรับรายการใหม่จากแชตนี้ รายการการเงินเดิมจะไม่ถูกลบ',
                         confirmLabel: 'นำออก',
                         tone: 'danger',
@@ -400,10 +400,10 @@ export default function LineJsBankAutomation() {
                   </label>
                 </div>
                 <label className="mf-bank-mid-label">
-                  Sender MID ของแชตธนาคารที่สอง
+                  รหัสแชตแจ้งเตือนของธนาคารที่เพิ่ม
                   <input
                     value={newSenderMid}
-                    placeholder="u ตามด้วยรหัสผู้ส่ง 32 ตัว"
+                    placeholder="กดเลือกแชตที่พบด้านบน"
                     maxLength={33}
                     disabled={saving || demoMode}
                     autoComplete="off"
@@ -413,7 +413,7 @@ export default function LineJsBankAutomation() {
                     }}
                   />
                   <small>
-                    เมื่อ LINEJS พบแจ้งเตือนธนาคารใหม่ กด “เลือกธนาคารนี้” ด้านบนเพื่อเติม MID
+                    เมื่อระบบพบแชตแจ้งเตือนใหม่ ให้กด “เลือกแชตนี้” ด้านบน ระบบจะกรอกรหัสให้
                   </small>
                 </label>
                 <label className="mf-bank-extra-verify">
@@ -423,7 +423,7 @@ export default function LineJsBankAutomation() {
                     disabled={saving || demoMode}
                     onChange={(e) => setVerifiedExtraMid(e.target.checked)}
                   />
-                  ตรวจแล้วว่า Sender MID นี้มาจากแชตธนาคารที่เลือกจริง
+                  ฉันตรวจสอบแล้วว่าแชตนี้เป็นของธนาคารที่เลือก
                 </label>
                 <button
                   type="button"
@@ -441,17 +441,17 @@ export default function LineJsBankAutomation() {
             )}
           </div>
           <label className="mf-bank-mid-label">
-            Sender MID ของแชตธนาคาร
+            รหัสแชตแจ้งเตือนของธนาคารหลัก
             <input
               value={options.senderMid}
               maxLength={33}
               autoComplete="off"
               spellCheck={false}
-              placeholder="u ตามด้วยรหัสผู้ส่ง 32 ตัว"
+              placeholder="กดเลือกแชตที่พบด้านบน"
               disabled={demoMode || saving}
               onChange={(e) => update('senderMid', e.target.value.trim())}
             />
-            <small>เลือก MID ที่ระบบพบผ่าน Local Agent หรือระบุรหัสผู้ส่งที่ตรวจสอบแล้ว</small>
+            <small>เมื่อมีแจ้งเตือนใหม่ ระบบจะช่วยค้นหาแชตที่อาจเป็นของธนาคารให้เลือก</small>
           </label>
           <div className="mf-bank-actions">
             <button
@@ -477,7 +477,7 @@ export default function LineJsBankAutomation() {
       <div className="mf-bank-events">
         <div className="mf-bank-events-head">
           <div>
-            <h4>รายการที่บันทึกจาก LINEJS ล่าสุด</h4>
+            <h4>เงินเข้า–ออกที่บันทึกจากธนาคาร</h4>
             <p>แสดงเฉพาะรายการที่บันทึกสำเร็จแล้ว ไม่มีคิวตรวจสอบ</p>
           </div>
           <span>{events.length} รายการ</span>
@@ -485,8 +485,8 @@ export default function LineJsBankAutomation() {
         {!events.length ? (
           <div className="mf-bank-empty">
             <Clock3 size={23} />
-            <strong>ยังไม่มีรายการบันทึกจาก LINEJS</strong>
-            <p>แสดงเมื่อ LINEJS บันทึกจำนวนเงินได้สำเร็จตามกฎเงินเข้า/เงินออก</p>
+            <strong>ยังไม่มีรายการจากแจ้งเตือนธนาคาร</strong>
+            <p>เมื่อมีการบันทึกรายการจากธนาคารสำเร็จ จะแสดงที่นี่</p>
           </div>
         ) : (
           <div className="mf-bank-event-list">
@@ -521,7 +521,7 @@ export default function LineJsBankAutomation() {
         )}
       </div>
       <div className="mf-bank-footer">
-        <ShieldCheck size={15} /> LINEJS ไม่ใช่บริการธนาคารทางการ
+        <ShieldCheck size={15} /> การเชื่อมต่อแจ้งเตือนนี้ไม่ได้ให้บริการโดยธนาคารโดยตรง •
         รายการโอนระหว่างบัญชีตัวเองอาจถูกนับเป็นรายจ่าย กรุณาตรวจยอดเป็นระยะ
       </div>
     </section>

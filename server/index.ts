@@ -18,6 +18,7 @@ import { handleLineMessage } from './line-bot.ts';
 import { runDailyDigest } from './daily-digest.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
+import { createMiniAppRoutes } from './mini-app-auth.ts';
 import { hostedLineJsManager } from './linejs-hosted-manager.ts';
 import { extraBankSources } from './linejs-bank-sources.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
@@ -194,6 +195,7 @@ const allowedOrigins =
 const app = new Elysia()
   .use(cors({ origin: allowedOrigins, credentials: true }))
   .use(createAuthRoutes(sql))
+  .use(createMiniAppRoutes(sql))
   .use(createBankLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .use(createHostedLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .get('/api/health', async () => {

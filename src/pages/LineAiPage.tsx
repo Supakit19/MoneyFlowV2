@@ -43,6 +43,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { WeeklyOverview, FinanceCharts, FinanceSettings, SavingsOverview } from '../MoneyWellness';
+import './LineAiPage.css';
 import { amount, baht, short } from '../lib/finance';
 import { sectionTitle } from '../components/SectionTitle';
 import { useFinancePage } from '../app/FinanceContext';
@@ -86,11 +87,11 @@ export default function LineAiPage() {
   } = useFinancePage();
   return (
     <>
-      {sectionTitle('LINE & AI', 'ทุกการใช้จ่าย บันทึกได้ง่ายแค่ส่งข้อความ')}
+      {sectionTitle('จัดการเงินผ่าน LINE', 'พิมพ์รายจ่ายหรือส่งรูป แล้วให้ MoneyFlow ช่วยบันทึก')}
       <div className="integration-hero">
         <div className="integration-content">
           <span className="integration-label">
-            <span /> SMART FINANCE, SIMPLIFIED
+            <span /> YOUR MONEY, YOUR FLOW
           </span>
           <h2>
             จัดการเงินผ่าน LINE
@@ -126,6 +127,17 @@ export default function LineAiPage() {
           <div className="chat-bubble left">บันทึกรายการเรียบร้อย!</div>
         </div>
       </div>
+      <section className="mf-mini-launch" aria-label="หน้าจัดการเงินบนมือถือ">
+        <div className="mf-mini-launch-icon"><Wallet size={25} /></div>
+        <div className="mf-mini-launch-content">
+          <span>เปิดง่ายใน LINE · ออกแบบสำหรับมือถือ</span>
+          <h3>เงินทุกบัญชี ดูได้ในหน้าจอเดียว</h3>
+          <p>เช็กยอดรวม ดูงบสัปดาห์นี้ และบันทึกรายรับรายจ่ายได้รวดเร็ว โดยใช้ข้อมูล MoneyFlow บัญชีเดิม</p>
+        </div>
+        <a className="mf-mini-launch-action" href="/mini">
+          ดูหน้าจอสำหรับมือถือ <ArrowUpRight size={17} />
+        </a>
+      </section>
       <div className="integration-grid">
         <div className="panel connection-panel">
           <div className="panel-header">
@@ -169,7 +181,7 @@ export default function LineAiPage() {
               <div>
                 <span>01</span>
                 <p>
-                  <strong>เปิดแชต MoneyFlow Official Account</strong> ใน LINE หากยังไม่ได้เป็นเพื่อน
+                  <strong>เปิดแชต MoneyFlow</strong> ใน LINE หากยังไม่ได้เป็นเพื่อน
                   ให้เพิ่มเพื่อนก่อน
                 </p>
               </div>
@@ -265,9 +277,9 @@ export default function LineAiPage() {
           <div className="panel-header">
             <div>
               <h3>
-                <BrainCircuit size={20} /> Gemini AI Assistant
+                <BrainCircuit size={20} /> ทดลองให้ผู้ช่วยอ่านรายการ
               </h3>
-              <p>ทดลองให้ AI แยกรายการจากข้อความ</p>
+              <p>ลองพิมพ์ค่าใช้จ่าย แล้วดูว่าระบบอ่านได้อย่างไร</p>
             </div>
             <span className="ai-badge">
               <Sparkles size={13} /> AI

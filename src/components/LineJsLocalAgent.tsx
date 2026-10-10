@@ -85,9 +85,9 @@ export default function LineJsLocalAgent({
     if (busy || demoMode) return;
     if (name === 'connect') {
       const agreed = await askConfirm({
-        title: 'เชื่อม LINEJS กับ MoneyFlow บน Mac?',
+        title: 'เชื่อม LINE กับ MoneyFlow บนเครื่องนี้?',
         description:
-          'ระบบจะสร้างโทเค็นให้และเก็บเฉพาะบน Mac โดยอัตโนมัติ หากเคยใช้โทเค็นเดิม จะถูกแทนที่และ Flow จะปิดชั่วคราว ต้องเปิดอีกครั้งหลังตรวจการตั้งค่า',
+          'ระบบจะตั้งค่าการเชื่อมต่อให้อัตโนมัติ หากเคยเชื่อมไว้จะต้องเปิดรับแจ้งเตือนใหม่หลังตรวจสอบข้อมูล',
         confirmLabel: 'เชื่อมต่อบนเครื่องนี้',
         tone: 'normal',
       });
@@ -100,15 +100,15 @@ export default function LineJsLocalAgent({
       if (name === 'connect') await onConnected?.();
       notify(
         name === 'connect'
-          ? 'เชื่อม Worker กับ MoneyFlow แล้ว ไม่ต้องตั้งค่า .env เอง'
+          ? 'ตั้งค่าการเชื่อม LINE บนเครื่องนี้สำเร็จ'
           : name === 'start'
-            ? 'เริ่ม LINEJS Worker แล้ว'
-            : 'สั่งหยุด LINEJS Worker แล้ว',
+            ? 'เริ่มรับแจ้งเตือนแล้ว'
+            : 'หยุดรับแจ้งเตือนแล้ว',
         'success',
       );
       await refresh();
     } catch (e: any) {
-      notify(e.message || 'ควบคุม Local Worker ไม่สำเร็จ', 'error');
+      notify(e.message || 'ควบคุมการเชื่อมต่อไม่สำเร็จ', 'error');
     } finally {
       setBusy(false);
     }
@@ -121,8 +121,8 @@ export default function LineJsLocalAgent({
           <Monitor size={20} />
         </span>
         <div>
-          <strong>LINEJS Local Agent</strong>
-          <p>จัดการตัวรับข้อความบน Mac ผ่านเว็บ ไม่ต้องเปิด Terminal สำหรับ Worker</p>
+          <strong>เชื่อม LINE บนเครื่องนี้</strong>
+          <p>เปิดรับข้อความจากธนาคารผ่านคอมพิวเตอร์เครื่องนี้</p>
         </div>
         <span className={'mf-agent-state ' + (agent?.running ? 'active' : '')}>
           <span /> {agent?.running ? 'ทำงานอยู่' : 'ไม่ได้ทำงาน'}
@@ -133,11 +133,11 @@ export default function LineJsLocalAgent({
           <CircleHelp size={17} />
           <span>
             {agent?.reason ||
-              'ควบคุม Local Agent ได้เฉพาะตอนเปิด MoneyFlow ที่ localhost บน Mac เครื่องนี้ หากใช้ VPS ต้องติดตั้ง Local Agent แยกก่อน'}
+              'การรับแจ้งเตือนบนเครื่องนี้ใช้ได้เมื่อเปิด MoneyFlow บนคอมพิวเตอร์เครื่องนี้เท่านั้น'}
           </span>
         </div>
       ) : !agent ? (
-        <div className="mf-agent-notice">กำลังตรวจการเชื่อมต่อ Local Agent...</div>
+        <div className="mf-agent-notice">กำลังตรวจการเชื่อม LINE...</div>
       ) : (
         <>
           <div className="mf-agent-status-line">
@@ -151,15 +151,14 @@ export default function LineJsLocalAgent({
                   : 'โหมดค้นหาผู้ส่ง'
                 : agent.linked
                   ? 'เครื่องนี้พร้อมเชื่อม'
-                  : 'ยังไม่ได้เชื่อม Worker'}
+                  : 'ยังไม่ได้เชื่อม LINE'}
             </span>
           </div>
           {agent.externalRunning && (
             <div className="mf-agent-notice">
               <AlertTriangle size={17} />
               <span>
-                พบ Worker ที่เปิดผ่าน Terminal อยู่ กรุณาปิดตัวเดิมด้วย Control + C
-                ก่อนใช้ปุ่มเริ่มผ่านเว็บ (ครั้งเดียว)
+                มีตัวรับแจ้งเตือนที่เปิดอยู่แล้ว กรุณาปิดการทำงานเดิมก่อนเปิดผ่านหน้านี้
               </span>
             </div>
           )}
@@ -170,7 +169,7 @@ export default function LineJsLocalAgent({
                 onClick={() => void action('connect')}
                 disabled={busy || agent.externalRunning}
               >
-                <Link2 size={16} /> เชื่อม Worker บน Mac
+                <Link2 size={16} /> เชื่อม LINE บนเครื่องนี้
               </button>
             )}
             {!agent.running && agent.linked && (
@@ -180,7 +179,7 @@ export default function LineJsLocalAgent({
                 onClick={() => void action('start')}
                 disabled={busy || agent.externalRunning}
               >
-                <CirclePlay size={17} /> เริ่ม LINEJS
+                <CirclePlay size={17} /> เริ่มรับแจ้งเตือน
               </button>
             )}
             {agent.running && (
@@ -190,7 +189,7 @@ export default function LineJsLocalAgent({
                 onClick={() => void action('stop')}
                 disabled={busy}
               >
-                <CircleStop size={17} /> หยุด LINEJS
+                <CircleStop size={17} /> หยุดรับแจ้งเตือน
               </button>
             )}
             <button type="button" className="is-neutral" onClick={() => void refresh()} disabled={busy}>
@@ -221,17 +220,17 @@ export default function LineJsLocalAgent({
                 <strong>
                   <ShieldCheck size={16} /> พบผู้ส่งที่อาจเป็นธนาคาร
                 </strong>
-                <small>ตรวจชื่อและตัวตนของแชต KBank Live จริงก่อนเลือก MID นี้</small>
+                <small>ตรวจสอบว่าเป็นแชตของธนาคารจริงก่อนกดเลือก</small>
                 <code>{agent.candidateMid}</code>
               </div>
               <button type="button" onClick={() => onCandidate?.(agent.candidateMid)}>
-                ใช้ MID นี้
+                ใช้แชตนี้
               </button>
             </div>
           )}
           {agent.running && agent.mode === 'listening' && (
             <p className="mf-agent-footnote">
-              ข้อความจากธนาคารที่ Worker ได้รับ {agent.observedCount ?? 0} · ส่งให้ MoneyFlow{' '}
+              แจ้งเตือนธนาคารที่ได้รับ {agent.observedCount ?? 0} · ส่งให้ MoneyFlow{' '}
               {agent.eventCount ?? 0} · ข้าม/อ่านไม่ได้ {agent.skippedCount ?? 0}
               {agent.lastOutcome
                 ? ' · ผลล่าสุด: ' + (outcomeText[agent.lastOutcome] || agent.lastOutcome)
@@ -241,7 +240,7 @@ export default function LineJsLocalAgent({
           {agent.running && agent.mode === 'listening' && (
             <p className="mf-agent-footnote">
               ตรวจข้อความล่าสุดจากแชตธนาคารแบบสำรองทุก 60 วินาที · ตรวจแล้ว {agent.historyChecks ?? 0}{' '}
-              รอบ · ข้อความใหม่หลังเปิด Worker {agent.historyRecent ?? 0} รายการ ·{' '}
+              รอบ · ข้อความใหม่หลังเริ่มใช้งาน {agent.historyRecent ?? 0} รายการ ·{' '}
               {agent.historyState === 'ok'
                 ? 'อ่านประวัติได้'
                 : agent.historyState === 'bank_chat_unavailable'
@@ -271,8 +270,7 @@ export default function LineJsLocalAgent({
             </div>
           )}
           <p className="mf-agent-footnote">
-            LINE Session และ Token อยู่ใน Mac ของคุณเท่านั้น · เมื่อเปิด MoneyFlow บน VPS
-            จะไม่สามารถสั่งเปิด Worker บน Mac ผ่านเว็บไซต์ได้โดยตรง
+            ข้อมูลสำหรับเชื่อมต่อจะอยู่บนคอมพิวเตอร์เครื่องนี้เท่านั้น · ต้องเปิดคอมพิวเตอร์ไว้ระหว่างรับแจ้งเตือน
           </p>
         </>
       )}

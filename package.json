@@ -23,6 +23,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",
     "@google/genai": "^1.20.0",
+    "@line/liff": "^2.26.0",
     "@vitejs/plugin-react": "^5.0.0",
     "elysia": "^1.4.0",
     "google-auth-library": "^11.2.0",

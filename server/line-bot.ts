@@ -1,5 +1,6 @@
 import type { Sql } from 'postgres';
 import { parseLineLoginCommand, isLineLoginAttempt } from '../shared/line-login.ts';
+import { getMiniAppConfig } from './mini-app-auth.ts';
 import { createHash } from 'node:crypto';
 import type { GoogleGenAI } from '@google/genai';
 import {
@@ -216,13 +217,19 @@ export async function handleLineMessage(event: any, { db, send, extract, publish
   const week = await weeklyStatus(db, userId, new Date(), Number(settings.weekly_limit_satang));
   const monthly = async () => monthStatus(db, userId);
 
-  if (/^(ช่วยเหลือ|เมนู|help|คำสั่ง)$/i.test(raw)) return reply(simpleHelpCard());
-  if (/^(ตั้งค่า|เปิดเว็บ)$/i.test(raw))
-    return reply(
-      lineErr(
-        'เข้าเว็บ MoneyFlow → LINE & AI เพื่อปรับงบรายสัปดาห์ บุคลิก AI และโหมดการยืนยันรายการครับ',
-      ),
-    );
+  const miniConfig = getMiniAppConfig();
+  const miniUrl = miniConfig.enabled ? 'https://liff.line.me/' + miniConfig.liffId : '';
+  if (/^(ช่วยเหลือ|เมนู|help|คำสั่ง)$/i.test(raw)) return reply(simpleHelpCard(miniUrl));
+  if (/^(เปิดเว็บ|เปิดสมุดเงิน|สมุดเงินของฉัน)$/i.test(raw))
+    return reply(lineErr(
+      miniUrl
+        ? '📒 เปิดสมุดเงินของคุณได้เลยครับ\n' + miniUrl
+        : '📒 หน้าจัดการเงินบนมือถือ: ' + (process.env.APP_PUBLIC_URL || 'https://moneyflow.aionixth.com') + '/mini\nหากยังไม่ได้เชื่อม LINE ให้เข้าสู่ระบบผ่านเว็บไซต์ MoneyFlow ก่อนครับ',
+    ));
+  if (/^ตั้งค่า$/i.test(raw))
+    return reply(lineErr(
+      'เข้าเว็บ MoneyFlow → จัดการเงินผ่าน LINE เพื่อปรับงบรายสัปดาห์ บุคลิกผู้ช่วย และวิธียืนยันรายการครับ',
+    ));
 
   if (/^(ยืนยัน|ตกลง|บันทึก)$/i.test(raw)) {
     const p = await db.unsafe(

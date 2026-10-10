@@ -18,6 +18,10 @@ const action=(label:string,message:string,primary=false):AnyNode=>({
  color:primary?C.green:C.light,
  action:{type:'message',label,text:message}
 });
+const linkAction=(label:string,uri:string):AnyNode=>({
+ type:'button',style:'primary',height:'sm',color:C.green,
+ action:{type:'uri',label,uri}
+});
 const weeklyMeter=(status:WeeklyStatus):AnyNode=>{
  if(!status.limitSatang)return vbox([
   text('ยังไม่ได้ตั้งงบรายสัปดาห์','sm',C.muted)
@@ -137,12 +141,14 @@ export function barChartCard(title:string,subtitle:string,
   [action('กลับไปสรุป',back),action('งบคงเหลือ','งบคงเหลือ')]),
   ['สรุปวันนี้','กราฟเดือนนี้','กราฟสัปดาห์']);
 }
-export const simpleHelpCard=()=>flexMessage(
+export const simpleHelpCard=(miniUrl?:string)=>flexMessage(
  'คำสั่ง MoneyFlow',wrap('สั่งงานได้ง่ายๆ','เลือกคำสั่งใน LINE เพื่อดูข้อมูล',[
   text('🧾 กาแฟ 45 · พิมพ์รายจ่ายหรือส่งรูปใบเสร็จ'),
   text('📊 สรุปวันนี้ / สรุปสัปดาห์ / สรุปเดือนนี้'),
   text('📈 กราฟสัปดาห์ / กราฟเดือนนี้'),
   text('💚 งบคงเหลือ / เหลือใช้วันละเท่าไหร่'),
   text('🔐 Login 12345678 (ใส่รหัสจริงจากหน้าเว็บ)')
- ],[action('สรุปสัปดาห์','สรุปสัปดาห์'),action('กราฟเดือนนี้','กราฟเดือนนี้')])
+ ],[action('สรุปสัปดาห์','สรุปสัปดาห์'),
+     miniUrl ? linkAction('เปิดสมุดเงินของฉัน',miniUrl) : action('กราฟเดือนนี้','กราฟเดือนนี้')]),
+ miniUrl ? ['สรุปเดือนนี้','กราฟเดือนนี้','งบคงเหลือ'] : undefined
 );

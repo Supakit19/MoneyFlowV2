@@ -14,7 +14,7 @@ export const menu = [
   { id: 'budgets', label: 'งบประมาณ', icon: ChartNoAxesCombined },
   { id: 'accounts', label: 'บัญชีและกระเป๋า', icon: Wallet },
   { id: 'recurring', label: 'รายการประจำ', icon: Repeat2 },
-  { id: 'integrations', label: 'LINE & AI', icon: MessageCircle },
+  { id: 'integrations', label: 'ผู้ช่วยใน LINE', icon: MessageCircle },
   { id: 'linejs', label: 'เชื่อมธนาคาร', icon: Landmark },
   { id: 'security', label: 'บัญชีและความปลอดภัย', icon: ShieldCheck },
 ];

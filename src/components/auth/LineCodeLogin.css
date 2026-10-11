@@ -16,6 +16,17 @@
   margin: 0 0 20px;
 }
 
+/* Keep existing-account guidance in the same Thai text scale as the LINE steps.
+   Without this rule it inherited the browser's 16px paragraph size. */
+.line-code-login .line-code-existing-warning {
+  margin: 15px 0 0;
+  color: #789080;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.85;
+  overflow-wrap: break-word;
+}
+
 .line-code-login .auth-line-instructions {
   margin: 17px 0 20px;
   gap: 14px;

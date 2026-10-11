@@ -39,5 +39,8 @@ describe('MoneyFlow optional bank connection education', () => {
     const markup = renderToStaticMarkup(<BrandMark />);
     expect(markup).toContain('mf-animated-brand-mark');
     expect(markup).toContain('โลโก้ MoneyFlow');
+    expect(markup).toContain('/brand/moneyflow-mascot.webp');
+    expect(markup).toContain('<img');
+    expect(markup).not.toContain('mf-animated-brand-letter');
   });
 });

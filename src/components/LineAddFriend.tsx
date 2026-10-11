@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ArrowRight, CheckCircle2, MessageCircle, QrCode, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BrandMark from './BrandMark';
 import './LineAddFriend.css';
 
 type LineAccount = { available: true; basicId: string };
@@ -108,7 +109,7 @@ export default function LineAddFriend() {
           <div className="mf-join-qr-card">
             <div className="mf-join-qr-top">
               <span className="mf-join-brand">
-                m<span>.</span>
+                <BrandMark />
               </span>
               <div>
                 <strong>MoneyFlow</strong>

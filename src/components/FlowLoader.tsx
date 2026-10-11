@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownLeft, ArrowUpRight, Check, Wallet } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Check } from 'lucide-react';
 import './FlowLoader.css';
 import BrandMark from './BrandMark';
 
@@ -25,25 +25,8 @@ export default function FlowLoader({
         <div className="mf-flow-orbit orbit-two">
           <span />
         </div>
-        <div className="mf-flow-wallet">
-          <div className="mf-flow-wallet-top">
-            <span className="mf-flow-wallet-brand">
-              <BrandMark />
-            </span>
-            <Wallet size={22} strokeWidth={1.8} />
-          </div>
-          <div className="mf-flow-wallet-amount">
-            <i />
-            <i />
-            <i />
-          </div>
-          <div className="mf-flow-wallet-graph">
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
+        <div className="mf-flow-mascot">
+          <BrandMark />
         </div>
         <div className="mf-flow-floating mf-flow-floating-in">
           <ArrowDownLeft size={16} />

@@ -1793,3 +1793,15 @@
     transition: none !important;
   }
 }
+
+.mf-site-company-hero-art > .mf-site-company-hero-mascot {
+  width: clamp(78px, 11vw, 110px);
+  height: clamp(78px, 11vw, 110px);
+  flex: 0 0 auto;
+  font-size: initial;
+  letter-spacing: normal;
+}
+.mf-site-company-hero-mascot > .mf-animated-brand-mark {
+  width: 100%;
+  height: 100%;
+}

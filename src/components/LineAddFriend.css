@@ -370,3 +370,15 @@
     transition: none !important;
   }
 }
+
+/* MoneyFlow's mascot replaces the former m. badge on the LINE QR card. */
+.mf-join-brand {
+  background: transparent;
+  border-radius: 50%;
+  padding: 0;
+  letter-spacing: normal;
+}
+.mf-join-brand > .mf-animated-brand-mark {
+  width: 100%;
+  height: 100%;
+}

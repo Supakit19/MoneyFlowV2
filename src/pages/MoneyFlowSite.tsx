@@ -636,8 +636,8 @@ export function CompanyPage() {
             โดยลดขั้นตอนการจดบันทึก และเชื่อมประสบการณ์บนเว็บเข้ากับ LINE ที่ใช้ทุกวัน
           </p>
           <div className="mf-site-company-hero-art">
-            <div>
-              m<span>.</span>
+            <div className="mf-site-company-hero-mascot">
+              <BrandMark />
             </div>
             <div>
               TRACK

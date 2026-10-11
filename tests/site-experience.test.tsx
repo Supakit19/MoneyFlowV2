@@ -20,7 +20,8 @@ describe('Public MoneyFlow website before login', () => {
     expect(html).toContain('href="/company"');
     expect(html).toContain('https://liff.line.me/2011955989-OUGIQOBk');
     expect(html).toContain('ตัวอย่าง');
-    expect(html).not.toContain('<img');
+    expect(html).toContain('/brand/moneyflow-mascot.webp');
+    expect(html).toContain('mf-site-hero');
   });
   test('about-company is a public MoneyFlow mission page with a clear login path', () => {
     const html = renderToStaticMarkup(
@@ -38,6 +39,7 @@ describe('Public MoneyFlow website before login', () => {
     expect(html).toContain('role="status"');
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('กำลังจัดข้อมูลของคุณ');
-    expect(html).toContain('mf-flow-wallet-graph');
+    expect(html).toContain('mf-flow-mascot');
+    expect(html).toContain('/brand/moneyflow-mascot.webp');
   });
 });

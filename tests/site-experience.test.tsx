@@ -42,4 +42,18 @@ describe('Public MoneyFlow website before login', () => {
     expect(html).toContain('mf-flow-mascot');
     expect(html).toContain('/brand/moneyflow-mascot.webp');
   });
+  test('LINE feature card keeps animated mascot within a fixed-size decoration, away from copy', async () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <LandingPage />
+      </MemoryRouter>,
+    );
+    const styles = await Bun.file(new URL('../src/pages/MoneyFlowSite.css', import.meta.url)).text();
+    expect(html).toContain('mf-site-feature-illustration mini');
+    expect(html).toContain('mf-animated-brand-image');
+    expect(styles).toMatch(
+      /\.mf-site-feature-illustration\.mini > span\s*\{[^}]*width: 56px;[^}]*height: 56px;/s,
+    );
+    expect(styles).toMatch(/\.mf-site-feature-card\.feature-mini\s*\{[^}]*padding-bottom: 92px;/s);
+  });
 });

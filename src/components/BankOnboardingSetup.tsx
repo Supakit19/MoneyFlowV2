@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import type { Account } from '../lib/finance';
+import { bankChatCandidates } from './bankChatCandidates';
 import './BankOnboardingSetup.css';
 
 type Bank = 'kbank' | 'ktb' | 'scb' | 'other';
@@ -35,6 +36,7 @@ type Agent = {
   qrUrl: string;
   pin: string;
   candidateMid: string;
+  candidateMids?: string[];
   reason: string;
   lastError: string;
   mode: string;
@@ -126,6 +128,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
     (local.agent.linked === true || local.agent.running === true) &&
     hosted?.connectorMode !== 'hosted';
   const agent = useLegacy ? local?.agent : hosted?.agent;
+  const chatCandidates = bankChatCandidates(agent);
   const serverSupported = useLegacy || Boolean(hosted?.agent?.available);
   const canSetup = useLegacy
     ? local?.agent?.linked === true
@@ -316,18 +319,46 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
                   ))}
                 </select>
               </label>
-              {agent?.candidateMid && (
-                <button
-                  type="button"
-                  className="bank-onboard-bank-option"
-                  onClick={() => {
-                    setSenderMid(agent.candidateMid);
-                    setHasVerifiedSender(false);
-                    setSaved(false);
-                  }}
-                >
-                  <ShieldCheck size={17} /> พบแชตที่อาจเป็นธนาคาร — กดเลือกหลังตรวจชื่อแชตจริง
-                </button>
+              {chatCandidates.length > 0 ? (
+                <div className="bank-onboard-candidates" aria-label="รายการแชตที่พบ">
+                  <div className="bank-onboard-candidates-heading">
+                    <ShieldCheck size={17} />
+                    <strong>พบแชตที่อาจเป็นธนาคาร ({chatCandidates.length})</strong>
+                  </div>
+                  <p>
+                    เปิด LINE เพื่อตรวจชื่อแชตและเครื่องหมายรับรองของธนาคารก่อนเลือก
+                    ระบบยังระบุชื่อธนาคารจากรหัสนี้ไม่ได้
+                  </p>
+                  {chatCandidates.map((mid) => {
+                    const selected = senderMid.toLowerCase() === mid;
+                    return (
+                      <div
+                        className={'bank-onboard-candidate ' + (selected ? 'is-selected' : '')}
+                        key={mid}
+                      >
+                        <code>{mid}</code>
+                        <button
+                          type="button"
+                          aria-pressed={selected}
+                          disabled={busy}
+                          onClick={() => {
+                            setSenderMid(mid);
+                            setHasVerifiedSender(false);
+                            setSaved(false);
+                          }}
+                        >
+                          {selected ? <CheckCircle2 size={15} /> : null}
+                          {selected ? 'เลือกแล้ว' : 'ใช้แชตนี้'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="bank-onboard-hint">
+                  ยังไม่พบแชตแจ้งเตือนธนาคาร กรุณาตรวจว่ามีข้อความจากธนาคารใน LINE แล้วรอระบบค้นหา
+                  หรือกดรีเฟรชด้านล่าง
+                </p>
               )}
               <label className="bank-onboard-field">
                 รหัสแชตแจ้งเตือนของธนาคาร

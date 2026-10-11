@@ -169,19 +169,85 @@
   border-color: #31a67a;
   box-shadow: 0 0 0 3px #2b9c7019;
 }
-.bank-onboard-bank-option {
-  background: #f0f9f3;
-  color: #1f8058;
-  border: 1px solid #cae7d4;
-  border-radius: 10px;
+.bank-onboard-candidates {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #c9e6d4;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f3faf5;
+  min-width: 0;
+}
+.bank-onboard-candidates-heading {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px;
-  text-align: left;
-  font-size: 12px;
+  gap: 8px;
+  color: #227b56;
+  font-size: 13px;
+}
+.bank-onboard-candidates > p {
+  margin: 0;
+  color: #678b76;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.bank-onboard-candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #dcece0;
+  border-radius: 11px;
+}
+.bank-onboard-candidate.is-selected {
+  border-color: #159b6b;
+  box-shadow: 0 0 0 2px #159b6b13;
+}
+.bank-onboard-candidate code {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: #416b54;
+  min-width: 0;
+}
+.bank-onboard-candidate button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #c8e6d4;
+  background: #eaf7ee;
+  color: #167d54;
+  border-radius: 9px;
+  padding: 9px 12px;
   font-weight: 800;
+  font-size: 11px;
+  white-space: nowrap;
+  flex: none;
   cursor: pointer;
+}
+.bank-onboard-candidate button[aria-pressed='true'] {
+  background: #148960;
+  color: white;
+  border-color: #148960;
+}
+.bank-onboard-candidate button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+@media (max-width: 480px) {
+  .bank-onboard-candidates {
+    padding: 12px;
+  }
+  .bank-onboard-candidate {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bank-onboard-candidate button {
+    align-self: flex-end;
+  }
 }
 .bank-onboard-check {
   display: flex;

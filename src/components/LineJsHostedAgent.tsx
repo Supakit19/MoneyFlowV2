@@ -16,6 +16,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import './LineJsLocalAgent.css';
+import { bankChatCandidates } from './bankChatCandidates';
 
 export type HostedStatus = {
   available: boolean;
@@ -119,6 +120,7 @@ export default function LineJsHostedAgent({
   }
   if (demoMode) return null;
   const a = result?.agent;
+  const chatCandidates = bankChatCandidates(a);
   return (
     <div className="mf-agent-card" aria-label="เชื่อม LINE เพื่อรับแจ้งเตือนธนาคาร">
       <div className="mf-agent-heading">
@@ -224,13 +226,13 @@ export default function LineJsHostedAgent({
               )}
             </div>
           )}
-          {(a.candidateMids?.length || a.candidateMid) && (
+          {chatCandidates.length > 0 && (
             <div className="mf-agent-candidates">
               <strong>
                 <ShieldCheck size={16} /> พบแชตที่อาจเป็นธนาคาร
               </strong>
               <small>กรุณาเปิดแชตใน LINE ตรวจชื่อและเครื่องหมายรับรองของธนาคารก่อนเลือก</small>
-              {(a.candidateMids?.length ? a.candidateMids : [a.candidateMid]).map((mid) => (
+              {chatCandidates.map((mid) => (
                 <div className="mf-agent-candidate" key={mid}>
                   <code>{mid}</code>
                   <button type="button" onClick={() => onCandidate?.(mid)}>
@@ -252,7 +254,8 @@ export default function LineJsHostedAgent({
             </div>
           )}
           <p className="mf-agent-footnote">
-            ข้อมูลเชื่อมต่อของแต่ละคนถูกเก็บแยกและเข้ารหัส · วิธีอ่านแจ้งเตือนไม่ใช่บริการทางการจาก LINE หรือธนาคาร
+            ข้อมูลเชื่อมต่อของแต่ละคนถูกเก็บแยกและเข้ารหัส · วิธีอ่านแจ้งเตือนไม่ใช่บริการทางการจาก LINE
+            หรือธนาคาร
           </p>
         </>
       )}

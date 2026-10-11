@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import type { Account } from '../lib/finance';
-import { bankChatCandidates } from './bankChatCandidates';
+import { bankChatCandidates, bankChatIdentity } from './bankChatCandidates';
+import BankChatIdentityLabel from './BankChatIdentityLabel';
 import './BankOnboardingSetup.css';
 
 type Bank = 'kbank' | 'ktb' | 'scb' | 'other';
@@ -168,6 +169,10 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
     }
     if (!senderMid || !/^u[0-9a-f]{32}$/i.test(senderMid)) {
       setFailure('กรุณาเลือกแชตแจ้งเตือนของธนาคารที่ถูกต้อง');
+      return;
+    }
+    if (!bankChatIdentity(senderMid).selectable) {
+      setFailure('แชตนี้อาจเป็น LINE BK ซึ่งระบบยังไม่รองรับ กรุณาตรวจสอบก่อนใช้');
       return;
     }
     if (!hasVerifiedSender && !saved) {
@@ -326,29 +331,32 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
                     <strong>พบแชตที่อาจเป็นธนาคาร ({chatCandidates.length})</strong>
                   </div>
                   <p>
-                    เปิด LINE เพื่อตรวจชื่อแชตและเครื่องหมายรับรองของธนาคารก่อนเลือก
-                    ระบบยังระบุชื่อธนาคารจากรหัสนี้ไม่ได้
+                    ชื่อธนาคารด้านล่างเป็นข้อมูลที่ผู้ใช้แจ้ง ไม่ใช่ข้อมูลยืนยันโดย LINE
+                    กรุณาเปิดแชตจริงเพื่อตรวจสอบก่อนเลือก
                   </p>
                   {chatCandidates.map((mid) => {
                     const selected = senderMid.toLowerCase() === mid;
+                    const identity = bankChatIdentity(mid);
                     return (
                       <div
                         className={'bank-onboard-candidate ' + (selected ? 'is-selected' : '')}
                         key={mid}
                       >
-                        <code>{mid}</code>
+                        <BankChatIdentityLabel mid={mid} />
                         <button
                           type="button"
                           aria-pressed={selected}
-                          disabled={busy}
+                          disabled={busy || !identity.selectable}
                           onClick={() => {
                             setSenderMid(mid);
+                            if (identity.bank) setChosenBank(identity.bank);
                             setHasVerifiedSender(false);
+                            setRiskAccepted(false);
                             setSaved(false);
                           }}
                         >
                           {selected ? <CheckCircle2 size={15} /> : null}
-                          {selected ? 'เลือกแล้ว' : 'ใช้แชตนี้'}
+                          {!identity.selectable ? 'ยังไม่รองรับ' : selected ? 'เลือกแล้ว' : 'ใช้แชตนี้'}
                         </button>
                       </div>
                     );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowDownLeft, ArrowUpRight, Check, Wallet } from 'lucide-react';
 import './FlowLoader.css';
+import BrandMark from './BrandMark';
 
 type Props = { compact?: boolean; message?: string };
 
@@ -27,7 +28,7 @@ export default function FlowLoader({
         <div className="mf-flow-wallet">
           <div className="mf-flow-wallet-top">
             <span className="mf-flow-wallet-brand">
-              m<span>.</span>
+              <BrandMark />
             </span>
             <Wallet size={22} strokeWidth={1.8} />
           </div>

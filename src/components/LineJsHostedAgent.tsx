@@ -16,7 +16,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import './LineJsLocalAgent.css';
-import { bankChatCandidates } from './bankChatCandidates';
+import { bankChatCandidates, bankChatIdentity } from './bankChatCandidates';
+import BankChatIdentityLabel from './BankChatIdentityLabel';
 
 export type HostedStatus = {
   available: boolean;
@@ -231,12 +232,19 @@ export default function LineJsHostedAgent({
               <strong>
                 <ShieldCheck size={16} /> พบแชตที่อาจเป็นธนาคาร
               </strong>
-              <small>กรุณาเปิดแชตใน LINE ตรวจชื่อและเครื่องหมายรับรองของธนาคารก่อนเลือก</small>
+              <small>
+                ชื่อบางรายการมาจากข้อมูลที่ผู้ใช้แจ้ง ไม่ใช่ชื่อที่ LINE ยืนยัน
+                ต้องตรวจแชตจริงก่อนผูกบัญชี
+              </small>
               {chatCandidates.map((mid) => (
                 <div className="mf-agent-candidate" key={mid}>
-                  <code>{mid}</code>
-                  <button type="button" onClick={() => onCandidate?.(mid)}>
-                    ใช้แชตนี้
+                  <BankChatIdentityLabel mid={mid} />
+                  <button
+                    type="button"
+                    disabled={!bankChatIdentity(mid).selectable}
+                    onClick={() => onCandidate?.(mid)}
+                  >
+                    {bankChatIdentity(mid).selectable ? 'ใช้แชตนี้' : 'ยังไม่รองรับ'}
                   </button>
                 </div>
               ))}

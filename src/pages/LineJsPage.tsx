@@ -1,11 +1,13 @@
 import React from 'react';
 import { AlertTriangle, ArrowDownUp, CheckCheck, LockKeyhole, Monitor, ShieldAlert } from 'lucide-react';
 import LineJsBankAutomation from '../components/LineJsBankAutomation';
+import BankConnectionIntroDialog from '../components/BankConnectionIntroDialog';
 import './LineJsPage.css';
 
 export default function LineJsPage() {
   return (
     <div className="mf-linejs-page">
+      <BankConnectionIntroDialog />
       <div className="mf-linejs-hero">
         <div className="mf-linejs-hero-copy">
           <span className="mf-linejs-eyebrow">

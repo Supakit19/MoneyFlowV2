@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
 import BankOnboardingSetup from '../components/BankOnboardingSetup';
+import BankConnectionIntroDialog from '../components/BankConnectionIntroDialog';
 import type { Data } from '../lib/finance';
 import { amount, baht } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
@@ -438,6 +439,7 @@ export default function WelcomePage({ data, overview, onFinish, notify }: Props)
                 <div className="welcome-fields">
                   <h2>เชื่อมธนาคารเพื่อให้ MoneyFlow จดเงินแทนคุณ</h2>
                   <p>ไม่ต้องเปิดหน้าเว็บค้างไว้ ข้อมูลของแต่ละคนแยกกันและตั้งค่าภายหลังได้</p>
+                  <BankConnectionIntroDialog onSkip={() => void skip()} />
                   <BankOnboardingSetup
                     accounts={data.accounts}
                     lineConnected={lineConnected}

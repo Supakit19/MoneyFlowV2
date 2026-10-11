@@ -18,6 +18,7 @@ import {
   Zap,
 } from 'lucide-react';
 import LineAddFriend from '../components/LineAddFriend';
+import BrandMark from '../components/BrandMark';
 import './MoneyFlowSite.css';
 
 const pocketUrl = 'https://liff.line.me/2011955989-OUGIQOBk';
@@ -26,7 +27,7 @@ function SiteLogo({ light = false }: { light?: boolean }) {
   return (
     <Link className={'mf-site-logo' + (light ? ' light' : '')} to="/" aria-label="MoneyFlow กลับหน้าแรก">
       <span className="mf-site-logo-icon">
-        m<span>.</span>
+        <BrandMark />
       </span>
       <span>
         moneyflow<span className="mf-site-logo-period">.</span>
@@ -116,7 +117,9 @@ function HeroPreview() {
       <div className="mf-site-preview-panel">
         <div className="mf-site-preview-top">
           <div className="mf-site-preview-user">
-            <span>m.</span>
+            <span>
+              <BrandMark />
+            </span>
             <div>
               <b>ภาพรวมเงินของคุณ</b>
               <small>ภาพจำลองเพื่อแสดงรูปแบบการใช้งาน</small>
@@ -384,7 +387,9 @@ export default function LandingPage() {
                   ) : null}
                   {f.type === 'mini' ? (
                     <div className="mf-site-feature-illustration mini">
-                      <span>m.</span>
+                      <span>
+                        <BrandMark />
+                      </span>
                       <div>
                         <i />
                         <i />
@@ -433,7 +438,9 @@ export default function LandingPage() {
             aria-label="ตัวอย่างบทสนทนาและข้อความยืนยันรายการ"
           >
             <div className="mf-site-chat-head">
-              <span>m.</span>
+              <span>
+                <BrandMark />
+              </span>
               <div>
                 <b>MoneyFlow</b>
                 <small>

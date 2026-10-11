@@ -25,6 +25,7 @@ import type { Data, Entry } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
 import FlowLoader from '../components/FlowLoader';
 import { websiteFallbackForPocket } from '../app/entry-routes';
+import BrandMark from '../components/BrandMark';
 import { budgetProjection } from '../lib/budgetForecast';
 import './MiniApp.css';
 
@@ -360,9 +361,7 @@ export default function MiniApp() {
             ) : (
               <>
                 <div className="mf-mini-gate-logo">
-                  <span>
-                    m<span className="mf-mini-dot">.</span>
-                  </span>
+                  <BrandMark />
                 </div>
                 <h1>MoneyFlow</h1>
                 <p className="mf-mini-gate-kicker">พื้นที่จัดการเงินของคุณ</p>
@@ -390,7 +389,10 @@ export default function MiniApp() {
           <>
             <header className="mf-mini-head">
               <div className="mf-mini-brand">
-                <span className="mf-mini-brand-icon">m.</span> moneyflow
+                <span className="mf-mini-brand-icon">
+                  <BrandMark />
+                </span>{' '}
+                moneyflow
                 <span className="mf-mini-brand-stop">.</span>
               </div>
               <span className="mf-mini-line-pill">

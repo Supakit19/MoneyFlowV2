@@ -16,6 +16,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import './LineJsLocalAgent.css';
+import { bankChatIdentity } from './bankChatCandidates';
+import BankChatIdentityLabel from './BankChatIdentityLabel';
 
 type Agent = {
   available: boolean;
@@ -157,9 +159,7 @@ export default function LineJsLocalAgent({
           {agent.externalRunning && (
             <div className="mf-agent-notice">
               <AlertTriangle size={17} />
-              <span>
-                มีตัวรับแจ้งเตือนที่เปิดอยู่แล้ว กรุณาปิดการทำงานเดิมก่อนเปิดผ่านหน้านี้
-              </span>
+              <span>มีตัวรับแจ้งเตือนที่เปิดอยู่แล้ว กรุณาปิดการทำงานเดิมก่อนเปิดผ่านหน้านี้</span>
             </div>
           )}
           <div className="mf-agent-buttons">
@@ -220,11 +220,15 @@ export default function LineJsLocalAgent({
                 <strong>
                   <ShieldCheck size={16} /> พบผู้ส่งที่อาจเป็นธนาคาร
                 </strong>
-                <small>ตรวจสอบว่าเป็นแชตของธนาคารจริงก่อนกดเลือก</small>
-                <code>{agent.candidateMid}</code>
+                <small>ชื่อที่แสดงอาจมาจากข้อมูลที่ผู้ใช้แจ้ง กรุณาตรวจสอบใน LINE ก่อนเลือก</small>
+                <BankChatIdentityLabel mid={agent.candidateMid} />
               </div>
-              <button type="button" onClick={() => onCandidate?.(agent.candidateMid)}>
-                ใช้แชตนี้
+              <button
+                type="button"
+                disabled={!bankChatIdentity(agent.candidateMid).selectable}
+                onClick={() => onCandidate?.(agent.candidateMid)}
+              >
+                {bankChatIdentity(agent.candidateMid).selectable ? 'ใช้แชตนี้' : 'ยังไม่รองรับ'}
               </button>
             </div>
           )}
@@ -270,7 +274,8 @@ export default function LineJsLocalAgent({
             </div>
           )}
           <p className="mf-agent-footnote">
-            ข้อมูลสำหรับเชื่อมต่อจะอยู่บนคอมพิวเตอร์เครื่องนี้เท่านั้น · ต้องเปิดคอมพิวเตอร์ไว้ระหว่างรับแจ้งเตือน
+            ข้อมูลสำหรับเชื่อมต่อจะอยู่บนคอมพิวเตอร์เครื่องนี้เท่านั้น ·
+            ต้องเปิดคอมพิวเตอร์ไว้ระหว่างรับแจ้งเตือน
           </p>
         </>
       )}

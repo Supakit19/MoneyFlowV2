@@ -13,6 +13,7 @@ import {
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import LineJsConnectorAgent from './LineJsConnectorAgent';
+import { bankChatIdentity } from './bankChatCandidates';
 import './LineJsBankAutomation.css';
 
 type ExtraBankSource = {
@@ -214,13 +215,23 @@ export default function LineJsBankAutomation() {
       <LineJsConnectorAgent
         onConnected={load}
         onCandidate={(mid) => {
+          const identity = bankChatIdentity(mid);
+          if (!identity.selectable) {
+            notify('แชตนี้อาจเป็น LINE BK ซึ่งยังไม่รองรับการบันทึกอัตโนมัติ', 'warning');
+            return;
+          }
           if (options.senderMid) {
             setNewSenderMid(mid);
+            if (identity.bank) setNewBank(identity.bank);
             setVerifiedExtraMid(false);
-            notify('พบแชตแจ้งเตือนอีกแห่งแล้ว กรุณาตรวจสอบธนาคารและเลือกบัญชีที่จะบันทึก', 'info');
+            notify('เลือกรหัสแชตแล้ว กรุณาตรวจชื่อธนาคารและบัญชีที่จะบันทึกอีกครั้ง', 'info');
           } else {
-            update('senderMid', mid);
-            notify('พบแชตแจ้งเตือนแล้ว กรุณาตรวจสอบว่าเป็นธนาคารจริง แล้วกดบันทึก', 'info');
+            setOptions((current) => ({
+              ...current,
+              senderMid: mid,
+              bank: identity.bank ?? current.bank,
+            }));
+            notify('เลือกรหัสแชตแล้ว กรุณาตรวจชื่อธนาคารและบัญชีก่อนบันทึก', 'info');
           }
         }}
       />
@@ -311,8 +322,8 @@ export default function LineJsBankAutomation() {
           <div className="mf-bank-extras">
             <strong>แชตธนาคารเพิ่มเติม · LINE เดียวกัน</strong>
             <p>
-              กสิกรและกรุงไทยใช้ LINE เดียวกันได้ แต่บันทึกแยกบัญชีเงินกัน
-              เพิ่มบัญชีกรุงไทยในหน้า “บัญชีและกระเป๋า” ก่อน หากยังไม่มี
+              กสิกรและกรุงไทยใช้ LINE เดียวกันได้ แต่บันทึกแยกบัญชีเงินกัน เพิ่มบัญชีกรุงไทยในหน้า
+              “บัญชีและกระเป๋า” ก่อน หากยังไม่มี
             </p>
             {options.extraSources.map((source) => (
               <div className="mf-bank-extra-item" key={source.bank}>
@@ -412,9 +423,7 @@ export default function LineJsBankAutomation() {
                       setVerifiedExtraMid(false);
                     }}
                   />
-                  <small>
-                    เมื่อระบบพบแชตแจ้งเตือนใหม่ ให้กด “เลือกแชตนี้” ด้านบน ระบบจะกรอกรหัสให้
-                  </small>
+                  <small>เมื่อระบบพบแชตแจ้งเตือนใหม่ ให้กด “เลือกแชตนี้” ด้านบน ระบบจะกรอกรหัสให้</small>
                 </label>
                 <label className="mf-bank-extra-verify">
                   <input

@@ -1,0 +1,59 @@
+.mf-bank-chat-identity {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.mf-bank-chat-identity-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mf-bank-chat-identity-heading > strong {
+  color: #1f6045;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 850;
+}
+.mf-bank-chat-identity-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.4;
+  border-radius: 20px;
+  background: #e8f5ec;
+  color: #327a55;
+}
+.mf-bank-chat-identity-status.is-tentative {
+  background: #fff4de;
+  color: #986b2f;
+}
+.mf-bank-chat-identity-status.is-unknown {
+  background: #eff2f0;
+  color: #6d8175;
+}
+.mf-bank-chat-identity > p {
+  color: #6d8978;
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+}
+.mf-bank-chat-identity > details {
+  max-width: 100%;
+  font-size: 11px;
+  color: #769182;
+}
+.mf-bank-chat-identity > details summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.mf-bank-chat-identity > details code {
+  display: block;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  color: #4e705e;
+  font-size: 11px;
+}

@@ -136,7 +136,7 @@ export async function pushUnrecognizedBankAlert(
     await db`
       UPDATE bank_linejs_events
       SET push_status=${successful ? 'sent' : 'failed'}
-      WHERE id=${eventId} AND user_id=${userId} AND status='ignored'
+      WHERE id=${eventId} AND user_id=${userId} AND status='pending'
     `;
   } catch {
     // A failed optional notification cannot affect the user's ledger.

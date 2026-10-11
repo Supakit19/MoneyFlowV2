@@ -21,7 +21,11 @@ function fakeIngest() {
       const query = parts.join('?');
       if (query.includes('SELECT * FROM bank_linejs_settings')) return Promise.resolve([settings]);
       if (query.includes('SELECT status FROM bank_linejs_events')) return Promise.resolve([]);
-      if (query.includes('INSERT INTO bank_linejs_events')) eventWrites++;
+      if (query.includes('INSERT INTO bank_linejs_events')) {
+        eventWrites++;
+        return Promise.resolve([{ id: '00000000-0000-4000-a000-000000000010' }]);
+      }
+      if (query.includes('UPDATE bank_linejs_settings SET last_event_at')) return Promise.resolve([]);
       throw Error('Unexpected database write for ignored alert');
     },
     {
@@ -57,7 +61,7 @@ function fakeIngest() {
   };
 }
 
-describe('LINEJS never queues unsigned or untrusted alerts for review', () => {
+describe('LINEJS only queues verified-bank ambiguous movements for explicit review', () => {
   test('missing signed amount is ignored without an event or transaction', async () => {
     const app = fakeIngest();
     const result = await app.ingest('รายการโอน/ถอน\nจากบัญชี xxx-x-x9097-x');
@@ -72,11 +76,12 @@ describe('LINEJS never queues unsigned or untrusted alerts for review', () => {
     expect(result.body.status).toBe('ignored');
     expect(app.eventWrites).toBe(0);
   });
-  test('ambiguous multiple amounts without reliable direction are ignored', async () => {
+  test('ambiguous multiple amounts from verified bank are queued without booking money', async () => {
     const app = fakeIngest();
     const result = await app.ingest('จากบัญชี\n25.00 บาท\n35.00 บาท');
-    expect(result.body.status).toBe('ignored');
-    expect(app.eventWrites).toBe(0);
+    expect(result.body.status).toBe('pending');
+    expect(app.eventWrites).toBe(1);
+    expect(app.financeWrites).toBe(0);
   });
   test('unapproved sender MID is rejected', async () => {
     const app = fakeIngest();

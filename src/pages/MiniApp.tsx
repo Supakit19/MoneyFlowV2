@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronRight,
+  ClipboardCheck,
   CircleAlert,
   House,
   Landmark,
@@ -24,9 +25,10 @@ import type { Data, Entry } from '../lib/finance';
 import type { FinanceOverview } from '../MoneyWellness';
 import FlowLoader from '../components/FlowLoader';
 import { websiteFallbackForPocket } from '../app/entry-routes';
+import { budgetProjection } from '../lib/budgetForecast';
 import './MiniApp.css';
 
-type Tab = 'home' | 'history' | 'wallets';
+type Tab = 'home' | 'history' | 'wallets' | 'review';
 type Kind = 'expense' | 'income';
 const cash = (satang: number | string) =>
   '฿' +
@@ -74,6 +76,29 @@ export default function MiniApp() {
   const [weeklyLimit, setWeeklyLimit] = useState('');
   const [budgetSaving, setBudgetSaving] = useState(false);
   const [budgetError, setBudgetError] = useState('');
+  const [reviewItems, setReviewItems] = useState<
+    Array<{
+      id: string;
+      bank: string;
+      kind: 'income' | 'expense' | null;
+      amountSatang: number | null;
+      accountId: string | null;
+      reason: string | null;
+    }>
+  >([]);
+  const [reviewTransfers, setReviewTransfers] = useState<
+    Array<{
+      outId: string;
+      inId: string;
+      amountSatang: number;
+      sourceName: string;
+      destinationName: string;
+    }>
+  >([]);
+  const [reviewDraft, setReviewDraft] = useState<
+    Record<string, { kind: 'income' | 'expense'; amount: string }>
+  >({});
+  const [reviewBusy, setReviewBusy] = useState(false);
 
   async function refresh() {
     const [money, summary, profile] = await Promise.all([
@@ -133,6 +158,83 @@ export default function MiniApp() {
     void bootstrap();
   }, []);
 
+  useEffect(() => {
+    if (tab !== 'review' || pageState !== 'ready') return;
+    void loadReviews();
+  }, [tab, pageState]);
+
+  async function loadReviews() {
+    try {
+      const result = await api('/finance/inbox');
+      setReviewItems(result.review || []);
+      setReviewTransfers(result.transfers || []);
+      setReviewDraft((previous) => {
+        const next = { ...previous };
+        for (const row of result.review || []) {
+          if (!next[row.id])
+            next[row.id] = {
+              kind: row.kind || 'expense',
+              amount: row.amountSatang ? String(row.amountSatang / 100) : '',
+            };
+        }
+        return next;
+      });
+    } catch (e: any) {
+      setToast(e.message || 'โหลดรายการตรวจสอบไม่สำเร็จ');
+    }
+  }
+
+  async function approveReview(row: { id: string; accountId: string | null }) {
+    if (reviewBusy) return;
+    const draft = reviewDraft[row.id],
+      amountValue = draft?.amount || '';
+    if (!/^\d{1,8}(?:\.\d{1,2})?$/.test(amountValue) || Number(amountValue) <= 0 || !row.accountId) {
+      setToast('กรุณาตรวจสอบยอดและบัญชีที่ผูกธนาคาร');
+      return;
+    }
+    setReviewBusy(true);
+    try {
+      await api('/finance/inbox/' + row.id + '/confirm', 'POST', {
+        kind: draft.kind,
+        amountSatang: Math.round(Number(amountValue) * 100),
+        accountId: row.accountId,
+      });
+      await Promise.all([refresh(), loadReviews()]);
+      setToast('บันทึกรายการที่ตรวจสอบแล้ว');
+    } catch (e: any) {
+      setToast(e.message || 'บันทึกไม่สำเร็จ');
+    } finally {
+      setReviewBusy(false);
+    }
+  }
+  async function rejectReview(row: { id: string }) {
+    if (reviewBusy || !window.confirm('ไม่บันทึกแจ้งเตือนนี้ใช่ไหม?')) return;
+    setReviewBusy(true);
+    try {
+      await api('/finance/inbox/' + row.id + '/reject', 'POST', {});
+      await loadReviews();
+      setToast('ไม่บันทึกแจ้งเตือนนี้แล้ว');
+    } catch (e: any) {
+      setToast(e.message || 'ทำรายการไม่สำเร็จ');
+    } finally {
+      setReviewBusy(false);
+    }
+  }
+  async function approveTransfer(pair: { outId: string; inId: string }) {
+    if (reviewBusy || !window.confirm('ยืนยันว่าเป็นการโอนเงินระหว่างบัญชีของคุณเองจริงหรือไม่?'))
+      return;
+    setReviewBusy(true);
+    try {
+      await api('/finance/transfers/confirm', 'POST', pair);
+      await Promise.all([refresh(), loadReviews()]);
+      setToast('จับคู่เป็นรายการโอนเรียบร้อย');
+    } catch (e: any) {
+      setToast(e.message || 'จับคู่ไม่สำเร็จ');
+    } finally {
+      setReviewBusy(false);
+    }
+  }
+
   const accounts = data?.accounts || [];
   const categories = data?.categories || [];
   const transactions = data?.transactions || [];
@@ -155,6 +257,7 @@ export default function MiniApp() {
     thisMonth.filter((r) => r.kind === 'income').reduce((s, r) => s + Number(r.amount_satang), 0);
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance_satang), 0);
   const week = overview?.week;
+  const forecast = week ? budgetProjection(week, overview?.settings.coach_tone) : null;
   const spentPercent = week?.limitSatang
     ? Math.max(0, Math.round((week.spentSatang / week.limitSatang) * 100))
     : 0;
@@ -372,6 +475,16 @@ export default function MiniApp() {
                       </div>
                     )}
                   </section>
+                  {forecast && (
+                    <div className="mf-mini-budget-projection">
+                      <strong>✦ แนวโน้มการใช้เงิน</strong>
+                      <p>{forecast.message}</p>
+                      <small>
+                        ประมาณการใช้ทั้งสัปดาห์ {cash(forecast.projectedSatang)} · ใช้ต่อได้วันละ{' '}
+                        {cash(forecast.dailyAllowanceSatang)}
+                      </small>
+                    </div>
+                  )}
                   <div className="mf-mini-section-heading">
                     <h2>หมดไปกับอะไรบ้าง</h2>
                     <span>{monthTitle()}</span>
@@ -440,6 +553,95 @@ export default function MiniApp() {
                   </section>
                 </>
               )}
+              {tab === 'review' && (
+                <>
+                  <section className="mf-mini-tab-title">
+                    <small>ตรวจเองก่อนบันทึก</small>
+                    <h1>รายการรอตรวจสอบ</h1>
+                    <p>ยอดไม่ชัดเจนหรืออาจเป็นการโอนเงินระหว่างบัญชีจะรอให้คุณยืนยันที่นี่</p>
+                  </section>
+                  {reviewItems.length === 0 && reviewTransfers.length === 0 && (
+                    <div className="mf-mini-empty">ยังไม่มีรายการที่ต้องตรวจสอบ</div>
+                  )}
+                  {reviewItems.map((row) => {
+                    const draft = reviewDraft[row.id] || {
+                      kind: row.kind || 'expense',
+                      amount: row.amountSatang ? String(row.amountSatang / 100) : '',
+                    };
+                    return (
+                      <section className="mf-mini-review" key={row.id}>
+                        <strong>{row.bank}</strong>
+                        <p>{row.reason || 'กรุณาตรวจข้อมูลในแอปธนาคารก่อนยืนยัน'}</p>
+                        <label className="mf-mini-form-label">
+                          เงินเข้า / เงินออก
+                          <select
+                            value={draft.kind}
+                            onChange={(e) =>
+                              setReviewDraft((s) => ({
+                                ...s,
+                                [row.id]: { ...draft, kind: e.target.value as 'income' | 'expense' },
+                              }))
+                            }
+                          >
+                            <option value="expense">เงินออก</option>
+                            <option value="income">เงินเข้า</option>
+                          </select>
+                        </label>
+                        <label className="mf-mini-form-label">
+                          จำนวนเงิน (บาท)
+                          <input
+                            inputMode="decimal"
+                            value={draft.amount}
+                            placeholder="0.00"
+                            onChange={(e) =>
+                              setReviewDraft((s) => ({
+                                ...s,
+                                [row.id]: { ...draft, amount: e.target.value },
+                              }))
+                            }
+                          />
+                        </label>
+                        <p>
+                          บัญชี:{' '}
+                          {accounts.find((a) => a.id === row.accountId)?.name ||
+                            'ต้องตั้งค่าบัญชีธนาคารในเว็บก่อน'}
+                        </p>
+                        <div className="mf-mini-review-actions">
+                          <button
+                            disabled={reviewBusy || !row.accountId}
+                            onClick={() => void approveReview(row)}
+                          >
+                            ยืนยันยอด
+                          </button>
+                          <button
+                            disabled={reviewBusy}
+                            className="skip"
+                            onClick={() => void rejectReview(row)}
+                          >
+                            ไม่บันทึก
+                          </button>
+                        </div>
+                      </section>
+                    );
+                  })}
+                  {reviewTransfers.map((pair) => (
+                    <section key={pair.outId + '-' + pair.inId} className="mf-mini-review">
+                      <strong>อาจเป็นการโอนระหว่างบัญชีของฉัน</strong>
+                      <h2>{cash(pair.amountSatang)}</h2>
+                      <p>
+                        {pair.sourceName} → {pair.destinationName}
+                      </p>
+                      <p>ตรวจสอบยอดทั้งสองฝั่งในแอปธนาคารก่อนกดจับคู่</p>
+                      <button disabled={reviewBusy} onClick={() => void approveTransfer(pair)}>
+                        จับคู่เป็นรายการโอน
+                      </button>
+                    </section>
+                  ))}
+                  <button className="mf-mini-outline-link" onClick={() => void loadReviews()}>
+                    โหลดรายการล่าสุด <RefreshCw size={16} />
+                  </button>
+                </>
+              )}
               {tab === 'wallets' && (
                 <>
                   <section className="mf-mini-tab-title">
@@ -495,10 +697,10 @@ export default function MiniApp() {
                 <Wallet size={21} />
                 <span>บัญชี</span>
               </button>
-              <a href="/line-ai">
-                <MessageCircle size={21} />
-                <span>ตั้งค่า LINE</span>
-              </a>
+              <button className={tab === 'review' ? 'active' : ''} onClick={() => setTab('review')}>
+                <ClipboardCheck size={21} />
+                <span>ตรวจสอบ</span>
+              </button>
             </nav>
           </>
         )}

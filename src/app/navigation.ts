@@ -7,10 +7,12 @@ import {
   ShieldCheck,
   Repeat2,
   Landmark,
+  ClipboardCheck,
 } from 'lucide-react';
 export const menu = [
   { id: 'dashboard', label: 'ภาพรวมการเงิน', icon: LayoutDashboard },
   { id: 'transactions', label: 'รายการทั้งหมด', icon: ArrowLeftRight },
+  { id: 'inbox', label: 'ตรวจสอบรายการ', icon: ClipboardCheck },
   { id: 'budgets', label: 'งบประมาณ', icon: ChartNoAxesCombined },
   { id: 'accounts', label: 'บัญชีและกระเป๋า', icon: Wallet },
   { id: 'recurring', label: 'รายการประจำ', icon: Repeat2 },
@@ -21,6 +23,7 @@ export const menu = [
 export const pagePaths = {
   dashboard: '/dashboard',
   transactions: '/transactions',
+  inbox: '/inbox',
   budgets: '/budgets',
   accounts: '/accounts',
   recurring: '/recurring',

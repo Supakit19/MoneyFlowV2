@@ -114,15 +114,15 @@ describe('LINEJS bank alerts import automatically from signed or explicit bank d
     expect(reply.result.status).toBe('saved');
     expect(instance.transactions).toEqual([{ kind: 'expense', amountSatang: 1250 }]);
   });
-  test('balance-only, conflicting direction and ambiguous multiple amounts are ignored', async () => {
-    for (const message of [
-      'ยอดคงเหลือ -300.00 บาท',
-      'เงินเข้า\nจำนวนเงิน -30.00 บาท',
-      'จากบัญชี\n25.00 บาท\n35.00 บาท',
+  test('balance-only is ignored, but signed-bank ambiguity waits for human review', async () => {
+    for (const [message, status] of [
+      ['ยอดคงเหลือ -300.00 บาท', 'ignored'],
+      ['เงินเข้า\nจำนวนเงิน -30.00 บาท', 'pending'],
+      ['จากบัญชี\n25.00 บาท\n35.00 บาท', 'pending'],
     ]) {
       const instance = harness();
       const reply = await instance.ingest(message);
-      expect(reply.result.status).toBe('ignored');
+      expect(reply.result.status).toBe(status);
       expect(instance.transactions).toHaveLength(0);
     }
   });
@@ -169,7 +169,7 @@ describe('LINEJS bank alerts import automatically from signed or explicit bank d
     const reply = await instance.ingest('โอนออก\nจำนวนเงิน 30.00 บาท', 'flex_nodes', '123456789923456', {
       altText: 'เงินเข้าจาก KBank Live',
     });
-    expect(reply.result.status).toBe('ignored');
+    expect(reply.result.status).toBe('pending');
     expect(instance.transactions).toHaveLength(0);
   });
   test('real KBank-like unsigned 50-baht card defaults to expense and records once', async () => {

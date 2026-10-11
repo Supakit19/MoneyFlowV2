@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { randomBytes } from 'node:crypto';
 import type { Sql } from 'postgres';
+import { findOrCreateLineUser } from './line-account.ts';
 import { isAuthorizedGoogleOrigin } from './google-auth.ts';
 import {
   buildLineAuthorizationUrl,
@@ -202,27 +203,15 @@ export function createLineQrRoutes(
       }
       try {
         const lineId = await verifyLineAuthorizationCode(config, code, row.code_verifier, row.nonce);
-        const linked = await sql`SELECT user_id FROM line_links WHERE line_user_id=${lineId} LIMIT 1`;
-        if (!linked.length) {
-          await sql`
-            UPDATE line_qr_oauth_challenges
-            SET status='failed',error_reason='LINE นี้ยังไม่ได้เชื่อมกับบัญชี MoneyFlow'
-            WHERE id=${row.id} AND status='verifying'
-          `;
-          return phoneResult(
-            ctx,
-            false,
-            'ยังไม่ได้เชื่อม LINE กับบัญชี',
-            'กรุณาเข้าสู่ระบบด้วยอีเมลหรือ Google ก่อน แล้วเชื่อม LINE ที่หน้าบัญชีและความปลอดภัย',
-            403,
-          );
-        }
+        // LINE has already verified the subject, audience and nonce.
+        // A new LINE member gets a separate account, never auto-merged by email.
+        const account = await findOrCreateLineUser(sql, lineId);
         // One tap on the phone is required before opening a financial account
         // on another device. This prevents approval by scanning a malicious QR.
         const approvalToken = randomBytes(32).toString('hex');
         const pendingApproval = await sql`
           UPDATE line_qr_oauth_challenges
-          SET user_id=${linked[0].user_id},approval_hash=${oauthSha256(approvalToken)}
+          SET user_id=${account.userId},approval_hash=${oauthSha256(approvalToken)}
           WHERE id=${row.id} AND status='verifying' AND expires_at>now()
           RETURNING id
         `;

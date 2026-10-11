@@ -3,7 +3,7 @@ import { Mail, MessageCircle, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucid
 import GoogleSignIn from './GoogleSignIn';
 import { pushToast } from './feedback';
 import { validateAuthForm, type FieldErrors } from './validation';
-import LineCodeLogin from './components/auth/LineCodeLogin';
+import LineWebLogin from './components/auth/LineWebLogin';
 
 type LoginProvider = 'email' | 'google' | 'line';
 
@@ -285,7 +285,7 @@ export default function AuthPortal({
 
       {provider === 'line' && (
         <div className="auth-formpanel auth-providerpanel">
-          <LineCodeLogin
+          <LineWebLogin
             onAuthenticated={onAuthenticated}
             onError={(message) => {
               if (message) reportError(message);

@@ -162,3 +162,19 @@ CREATE TABLE IF NOT EXISTS bank_linejs_events (
 ALTER TABLE bank_linejs_events ADD COLUMN IF NOT EXISTS source_format TEXT NOT NULL DEFAULT 'legacy';
 CREATE INDEX IF NOT EXISTS idx_bank_linejs_events_user_recent
   ON bank_linejs_events(user_id,created_at DESC);
+
+-- A verified image may be reviewed once per user. Never persist image bytes:
+-- only its digest and a short sanitized suggestion. User confirmation is mandatory.
+CREATE TABLE IF NOT EXISTS receipt_reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  image_digest TEXT NOT NULL CHECK (image_digest ~ '^[a-f0-9]{64}$'),
+  suggestion JSONB NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','saved','discarded')),
+  transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT now()+interval '3 days',
+  UNIQUE (user_id,image_digest)
+);
+CREATE INDEX IF NOT EXISTS idx_receipt_reviews_user_pending
+  ON receipt_reviews(user_id,created_at DESC) WHERE status='pending';

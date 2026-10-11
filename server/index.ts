@@ -17,7 +17,10 @@ import { fullFinanceOverview, setPreferences } from './moneyflow-features.ts';
 import { handleLineMessage } from './line-bot.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
+import { createFinanceToolsRoutes } from './finance-tools.ts';
+import { createReceiptRoutes } from './receipt-tools.ts';
 import { createMiniAppRoutes } from './mini-app-auth.ts';
+import { createLineQrRoutes } from './line-qr-routes.ts';
 import { hasAlternateSignIn } from './line-account.ts';
 import { hostedLineJsManager } from './linejs-hosted-manager.ts';
 import { extraBankSources } from './linejs-bank-sources.ts';
@@ -192,11 +195,27 @@ const allowedOrigins =
   process.env.NODE_ENV === 'production'
     ? [process.env.WEB_ORIGIN || ''].filter(Boolean)
     : [process.env.WEB_ORIGIN || 'http://localhost:5178', 'http://127.0.0.1:5178'];
+const issueLineOAuthSession = async (cookie: any, userId: string) => {
+  const sessionToken = randomBytes(32).toString('hex');
+  await sql`INSERT INTO sessions(token_hash,user_id,expires_at,auth_method)
+    VALUES(${sha(sessionToken)},${userId},now()+interval '30 days','line')`;
+  cookie.mf_session.set({
+    value: sessionToken,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  });
+};
 const app = new Elysia()
   .use(cors({ origin: allowedOrigins, credentials: true }))
   .use(createAuthRoutes(sql))
+  .use(createLineQrRoutes(sql, issueLineOAuthSession))
   .use(createMiniAppRoutes(sql))
   .use(createBankLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
+  .use(createFinanceToolsRoutes(sql, guarded, (...args) => publishFinance(...args)))
+  .use(createReceiptRoutes(sql, guarded, extract, (...args) => publishFinance(...args)))
   .use(createHostedLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .get('/api/health', async () => {
     try {

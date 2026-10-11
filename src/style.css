@@ -541,3 +541,5 @@ button:focus-visible{outline-offset:3px}
   .google-origin-help,.google-origin-tip{padding:11px}
   .google-origin-copy button{width:100%}
 }
+
+.mf-week-projection{background:#f1f8f0;border:1px solid #d9eadd;border-radius:13px;padding:15px 18px;margin-top:15px;color:#205440}.mf-week-projection>strong{font-size:12px;color:#168866}.mf-week-projection p{font-size:12px;margin:8px 0;line-height:1.8}.mf-week-projection div{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;font-size:12px;font-weight:800;color:#1c6248}.mf-week-projection>small{display:block;color:#8ba593;font-size:10px;line-height:1.75;margin-top:10px}

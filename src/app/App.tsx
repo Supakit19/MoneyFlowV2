@@ -19,6 +19,7 @@ import LoginPage from '../pages/LoginPage';
 import WelcomePage from '../pages/WelcomePage';
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const TransactionsPage = lazy(() => import('../pages/TransactionsPage'));
+const FinanceInboxPage = lazy(() => import('../pages/FinanceInboxPage'));
 const BudgetsPage = lazy(() => import('../pages/BudgetsPage'));
 const AccountsPage = lazy(() => import('../pages/AccountsPage'));
 const RecurringPage = lazy(() => import('../pages/RecurringPage'));
@@ -428,6 +429,7 @@ export default function App() {
             <Route path="/demo" element={<DashboardPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/inbox" element={<FinanceInboxPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/recurring" element={<RecurringPage />} />

@@ -146,10 +146,10 @@ export default function LineQrLogin({ onAuthenticated, onError }: Props) {
         if (!result.approved) return;
         done = true;
         setFinishing(true);
-        setStatus('LINE ยืนยันสำเร็จ กำลังเข้าสู่บัญชีเดิม...');
+        setStatus('LINE ยืนยันสำเร็จ กำลังเข้าสู่ MoneyFlow...');
         await post('/auth/line/qr/complete', identity);
         if (!disposed)
-          await callbacks.current.onAuthenticated('เข้าสู่บัญชี MoneyFlow เดิมด้วย LINE สำเร็จ');
+          await callbacks.current.onAuthenticated('สมัครหรือเข้าสู่ MoneyFlow ด้วย LINE สำเร็จ');
       } catch (e: any) {
         if (disposed) return;
         done = true;
@@ -181,7 +181,7 @@ export default function LineQrLogin({ onAuthenticated, onError }: Props) {
       </div>
       <h3>เข้าสู่ระบบด้วย LINE</h3>
       <p className="line-qr-description">
-        สแกน QR แล้วยืนยันผ่านแอป LINE จากนั้นเว็บจะเข้าสู่บัญชีเดิมโดยอัตโนมัติ
+        สแกน QR แล้วยืนยันผ่านแอป LINE เพื่อสมัครใหม่หรือเข้าสู่บัญชีเดิม
         ไม่ต้องพิมพ์เลขหรือส่งข้อความ
       </p>
 
@@ -237,7 +237,7 @@ export default function LineQrLogin({ onAuthenticated, onError }: Props) {
           </button>
           <div className="line-qr-safety-note">
             <ShieldCheck size={16} aria-hidden="true" />
-            เพื่อความปลอดภัย ต้องเป็น LINE ที่เชื่อมกับบัญชี MoneyFlow ไว้แล้ว
+            ตรวจสอบชื่อเว็บไซต์ทุกครั้ง และอนุญาตเฉพาะเมื่อคุณเป็นผู้เริ่มเข้าสู่ระบบเอง
           </div>
         </div>
       ) : (

@@ -1,4 +1,5 @@
 import SecurityPanel from '../SecurityPanel';
+import SessionExportPanel from '../components/SessionExportPanel';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useFinancePage } from '../app/FinanceContext';
@@ -27,6 +28,7 @@ export default function SecurityPage() {
         onOpenLine={() => setView('integrations')}
         demo={demoMode}
       />
+      {!demoMode && <SessionExportPanel />}
       {!demoMode && (
         <section className="welcome-revisit panel">
           <div className="welcome-revisit-icon">

@@ -819,3 +819,6 @@
     font-size: 9px;
   }
 }
+
+.mf-mini-budget-projection{margin:15px 0 24px;padding:16px;background:#e8f4e9;border-radius:15px;border:1px solid #d1e8d7}.mf-mini-budget-projection strong{font-size:13px;color:#166d4c}.mf-mini-budget-projection p{font-size:12px;color:#527f62;line-height:1.75}.mf-mini-budget-projection small{font-size:11px;color:#789983;line-height:1.7}
+.mf-mini-review{border:1px solid #dce9df;border-radius:16px;background:#fff;padding:17px;margin:13px 0}.mf-mini-review>strong{font-size:13px;color:#176547}.mf-mini-review h2{font-size:23px;color:#1c513c}.mf-mini-review p{font-size:11px;color:#7a9786;line-height:1.7}.mf-mini-review label{font-size:11px;margin:10px 0}.mf-mini-review input,.mf-mini-review select{display:block;width:100%;margin-top:6px;min-height:42px;border:1px solid #dce7de;border-radius:10px;padding:10px;color:#194c3b;background:#fbfefb}.mf-mini-review button{padding:10px 15px;border:none;border-radius:10px;background:#169c6e;color:#fff;font-size:12px;font-weight:800;cursor:pointer}.mf-mini-review button:disabled{opacity:.5;cursor:not-allowed}.mf-mini-review-actions{display:flex;flex-wrap:wrap;gap:8px}.mf-mini-review-actions button.skip{background:#ecf5ee;color:#668a73}

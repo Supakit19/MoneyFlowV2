@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { pushToast } from './feedback';
+import { budgetProjection } from './lib/budgetForecast';
 import { validateWeeklyPreferences, validateLinePreferences, type FieldErrors } from './validation';
 import {
   ResponsiveContainer,
@@ -91,6 +92,7 @@ export function WeeklyOverview({
   if (!overview) return <div className="mf-week-card mf-week-skeleton">กำลังโหลดข้อมูลการเงิน...</div>;
   const w = overview.week;
   const pct = progress(w.progress);
+  const forecast = budgetProjection(w, overview.settings.coach_tone);
   return (
     <section className={'mf-week-card ' + (compact ? 'compact' : 'detailed')} aria-label="งบรายสัปดาห์">
       <div className="mf-week-header">
@@ -142,6 +144,20 @@ export function WeeklyOverview({
         <span>✦</span>
         <p>{sentence(w)}</p>
       </div>
+      {forecast && (
+        <div className="mf-week-projection" aria-label="ประมาณการงบรายสัปดาห์">
+          <strong>✦ แนวโน้มใช้เงินสัปดาห์นี้</strong>
+          <p>{forecast.message}</p>
+          <div>
+            <span>ใช้ต่อได้เฉลี่ยวันละ {baht(forecast.dailyAllowanceSatang)}</span>
+            <span>คาดว่าจะใช้รวม {baht(forecast.projectedSatang)}</span>
+          </div>
+          <small>
+            คำนวณจากค่าเฉลี่ยรายจ่าย {forecast.elapsedDays} วันที่ผ่านมา เป็นการประมาณ
+            ไม่ใช่ยอดเงินที่เกิดขึ้นจริง
+          </small>
+        </div>
+      )}
       <div className="mf-week-daily" aria-label="รายจ่ายรายวันในสัปดาห์">
         {w.daily.map((day) => {
           const top = Math.max(1, ...w.daily.map((x) => x.spentSatang));

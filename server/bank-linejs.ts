@@ -398,27 +398,34 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
           // unrecognized bank transaction completely silent. Store only a
           // deduplication hash and a generic reason, not message contents.
           const transactionAmountVisible = /\d[\d,]*\.\d{2}/.test(text);
+          const balanceOnly =
+            /^\s*(?:ยอดเงินคงเหลือ|ยอดคงเหลือ|คงเหลือ)\s*[-+\d,\.]*\s*(?:บาท)?\s*$/.test(text.trim());
           if (
-            !conf.push_line ||
             !transactionAmountVisible ||
+            balanceOnly ||
             (sourceFormat !== 'text' && sourceFormat !== 'flex_nodes')
           ) {
             return { ok: true, status: 'ignored', pushed: false };
           }
-          const ignored = await db`
+          const needsReview = await db`
             INSERT INTO bank_linejs_events
               (user_id,event_hash,sender_mid,bank,kind,amount_satang,
                summary,source_format,status,reason)
             VALUES (
               ${userId},${eventHash},${senderMid.toLowerCase()},${String(source.bank)},
               NULL,NULL,'แจ้งเตือนธนาคารที่ยังอ่านประเภทเงินไม่ได้',
-              ${sourceFormat},'ignored','ข้อความธนาคารไม่มีทิศทางหรือยอดที่ยืนยันได้'
+              ${sourceFormat},'pending','ยอดหรือทิศทางยังไม่ชัดเจน กรุณาตรวจในแอปธนาคาร'
             )
             ON CONFLICT(user_id,event_hash) DO NOTHING RETURNING id
           `;
-          if (!ignored.length) return { ok: true, status: 'duplicate', pushed: false };
-          const pushed = await pushUnrecognizedBankAlert(db, userId, ignored[0].id, String(source.bank));
-          return { ok: true, status: 'ignored', pushed };
+          if (!needsReview.length) return { ok: true, status: 'duplicate', pushed: false };
+          await db`UPDATE bank_linejs_settings SET last_event_at=now() WHERE user_id=${userId}`;
+          publish(userId, 'finance.changed');
+          const pushed =
+            conf.push_line === true
+              ? await pushUnrecognizedBankAlert(db, userId, needsReview[0].id, String(source.bank))
+              : false;
+          return { ok: true, status: 'pending', pushed };
         }
 
         const inserted = await db`
@@ -454,13 +461,16 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
           return { ok: true, status: 'saved', pushed };
         }
 
-        // Failed imports are skipped, not placed into a manual review queue.
+        // The source MID and amount were validated but saving failed.
+        // Keep the immutable event pending for explicit user review instead
+        // of silently losing a real bank movement.
         await db`
           UPDATE bank_linejs_events
-          SET status='ignored',reason='นำเข้ารายการไม่สำเร็จ'
+          SET reason='นำเข้ารายการอัตโนมัติไม่สำเร็จ กรุณาตรวจสอบ'
           WHERE id=${inserted[0].id} AND user_id=${userId} AND status='pending'
         `;
-        return { ok: true, status: 'ignored', pushed: false };
+        publish(userId, 'finance.changed');
+        return { ok: true, status: 'pending', pushed: false };
       })
   );
 }

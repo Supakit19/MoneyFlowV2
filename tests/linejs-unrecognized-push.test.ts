@@ -37,7 +37,7 @@ describe('LINEJS reports unrecognized bank notifications without booking money',
         const query = parts.join(' ').replace(/\s+/g, ' ');
         if (query.includes('SELECT * FROM bank_linejs_settings')) return Promise.resolve([config]);
         if (query.includes('SELECT status FROM bank_linejs_events'))
-          return Promise.resolve(events ? [{ status: 'ignored' }] : []);
+          return Promise.resolve(events ? [{ status: 'pending' }] : []);
         if (query.includes('INSERT INTO bank_linejs_events')) {
           events++;
           return Promise.resolve([{ id }]);
@@ -48,6 +48,7 @@ describe('LINEJS reports unrecognized bank notifications without booking money',
           savedStatus = 'sent';
           return Promise.resolve([]);
         }
+        if (query.includes('UPDATE bank_linejs_settings SET last_event_at')) return Promise.resolve([]);
         throw Error('Unexpected database query');
       },
       {
@@ -83,7 +84,7 @@ describe('LINEJS reports unrecognized bank notifications without booking money',
       return response.json() as Promise<any>;
     }
     try {
-      expect(await deliver()).toMatchObject({ ok: true, status: 'ignored', pushed: true });
+      expect(await deliver()).toMatchObject({ ok: true, status: 'pending', pushed: true });
       expect(await deliver()).toMatchObject({ ok: true, status: 'duplicate' });
       expect(events).toBe(1);
       expect(deliveries).toBe(1);

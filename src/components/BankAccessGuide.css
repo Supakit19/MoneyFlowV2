@@ -1,0 +1,193 @@
+.mf-bank-guide {
+  display: grid;
+  gap: 18px;
+  padding: 21px;
+  border: 1px solid #cce4d4;
+  background: #f8fcf9;
+  border-radius: 17px;
+  color: #255640;
+  margin: 22px 0;
+}
+.mf-bank-guide-title {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mf-bank-guide-title svg {
+  color: #168b60;
+  flex: none;
+}
+.mf-bank-guide-title h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+.mf-bank-guide-title p,
+.mf-bank-guide-step p,
+.mf-bank-consent p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.85;
+  color: #718a79;
+}
+.mf-bank-guide-steps {
+  display: grid;
+  gap: 12px;
+}
+.mf-bank-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: white;
+  border: 1px solid #e0eae2;
+  padding: 15px;
+  border-radius: 12px;
+}
+.mf-bank-step-number {
+  background: #e2f3e7;
+  color: #14855c;
+  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+.mf-bank-guide-step > div {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.mf-bank-guide-step strong {
+  font-size: 13px;
+}
+.mf-bank-guide-step label,
+.mf-bank-consent-checks label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  color: #3e6851;
+  line-height: 1.7;
+}
+.mf-bank-guide input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  accent-color: #16966b;
+  margin: 3px 0;
+}
+.mf-bank-guide-step small,
+.mf-bank-consent small {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #9a8064;
+}
+.mf-bank-guide-step a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #177c56;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+.mf-bank-guide-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: #fff8ea;
+  border: 1px solid #f2e0bf;
+  padding: 14px;
+  border-radius: 10px;
+  color: #916b3f;
+}
+.mf-bank-guide-warning svg {
+  flex: none;
+}
+.mf-bank-guide-warning p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0;
+}
+.mf-bank-consent {
+  background: white;
+  border: 1px solid #dceae1;
+  padding: 18px;
+  border-radius: 13px;
+  display: grid;
+  gap: 12px;
+}
+.mf-bank-consent-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #195e45;
+  font-size: 14px;
+}
+.mf-bank-consent a {
+  color: #13895e;
+  text-decoration: underline;
+}
+.mf-bank-consent-checks {
+  display: grid;
+  gap: 13px;
+}
+.mf-bank-consent-submit {
+  padding: 14px 18px;
+  background: #168d66;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mf-bank-consent-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mf-bank-granted {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+.mf-bank-granted span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #159668;
+  font-size: 12px;
+  font-weight: 800;
+}
+.mf-bank-granted button {
+  background: #fff5f2;
+  color: #b15e4f;
+  border: 1px solid #efd3cc;
+  border-radius: 8px;
+  font-size: 11px;
+  padding: 10px;
+  cursor: pointer;
+}
+.mf-bank-consent-error {
+  color: #a33e31 !important;
+}
+.mf-bank-guide.is-compact {
+  padding: 15px;
+}
+.mf-bank-guide.is-compact .mf-bank-guide-step {
+  padding: 12px;
+}
+@media (max-width: 600px) {
+  .mf-bank-guide {
+    padding: 13px;
+  }
+  .mf-bank-consent {
+    padding: 13px;
+  }
+  .mf-bank-guide-step {
+    padding: 12px;
+  }
+}

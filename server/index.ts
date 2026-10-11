@@ -16,6 +16,7 @@ import { startRealtime, type PublishFn } from './realtime.ts';
 import { fullFinanceOverview, setPreferences } from './moneyflow-features.ts';
 import { handleLineMessage } from './line-bot.ts';
 import { createBankLineJsRoutes } from './bank-linejs.ts';
+import { createBankConsentRoutes } from './bank-consent.ts';
 import { createHostedLineJsRoutes } from './linejs-hosted-routes.ts';
 import { createFinanceToolsRoutes } from './finance-tools.ts';
 import { createReceiptRoutes } from './receipt-tools.ts';
@@ -213,6 +214,7 @@ const app = new Elysia()
   .use(createAuthRoutes(sql))
   .use(createLineQrRoutes(sql, issueLineOAuthSession))
   .use(createMiniAppRoutes(sql))
+  .use(createBankConsentRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .use(createBankLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .use(createFinanceToolsRoutes(sql, guarded, (...args) => publishFinance(...args)))
   .use(createReceiptRoutes(sql, guarded, extract, (...args) => publishFinance(...args)))

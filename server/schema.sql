@@ -178,3 +178,21 @@ CREATE TABLE IF NOT EXISTS receipt_reviews (
 );
 CREATE INDEX IF NOT EXISTS idx_receipt_reviews_user_pending
   ON receipt_reviews(user_id,created_at DESC) WHERE status='pending';
+
+-- Separate voluntary personal-LINE bank access from normal LINE Login.
+-- Keep a current consent state and an append-only grant/withdrawal audit.
+CREATE TABLE IF NOT EXISTS bank_access_consents (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  version TEXT NOT NULL,
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ
+);
+CREATE TABLE IF NOT EXISTS bank_access_consent_events (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  version TEXT NOT NULL,
+  action TEXT NOT NULL CHECK (action IN ('granted','withdrawn')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_bank_consent_events_user
+ ON bank_access_consent_events(user_id,created_at DESC);

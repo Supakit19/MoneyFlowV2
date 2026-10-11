@@ -17,6 +17,7 @@ import {
 import { api } from '../lib/api';
 import type { Account } from '../lib/finance';
 import { bankChatCandidates } from './bankChatCandidates';
+import { BankAccessGuide } from './BankAccessGuide';
 import './BankOnboardingSetup.css';
 
 type Bank = 'kbank' | 'ktb' | 'scb' | 'other';
@@ -85,6 +86,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
   const [accountId, setAccountId] = useState('');
   const [saved, setSaved] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [bankPermission, setBankPermission] = useState(false);
 
   const refresh = useCallback(
     async (first = false) => {
@@ -138,7 +140,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
   const currentAccount = accountId || firstBank?.id || '';
 
   async function connect() {
-    if (busy || !serverSupported) return;
+    if (busy || !serverSupported || !bankPermission) return;
     setBusy(true);
     setFailure('');
     try {
@@ -162,6 +164,10 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
 
   async function apply() {
     if (busy) return;
+    if (!bankPermission) {
+      setFailure('กรุณาอ่านและยอมรับการอนุญาตเชื่อม LINE ส่วนตัวก่อน');
+      return;
+    }
     if (!canSetup || !active) {
       setFailure('กรุณาเชื่อม LINE ด้วย QR ให้สำเร็จก่อน');
       return;
@@ -225,6 +231,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
           <p>เชื่อม LINE ส่วนตัว 1 ครั้ง แล้วให้ MoneyFlow รับแจ้งเตือนตามบัญชีของคุณ</p>
         </div>
       </div>
+      <BankAccessGuide onPermissionChange={setBankPermission} compact />
       {!serverSupported ? (
         <div className="bank-onboard-notice">
           <AlertCircle size={18} />
@@ -248,7 +255,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
             <button
               type="button"
               className="bank-onboard-button"
-              disabled={busy}
+              disabled={busy || !bankPermission}
               onClick={() => void connect()}
             >
               <Link2 size={17} />
@@ -432,7 +439,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
               <button
                 type="button"
                 className="bank-onboard-button"
-                disabled={busy || !active}
+                disabled={busy || !active || !bankPermission}
                 onClick={() => void apply()}
               >
                 {busy ? (

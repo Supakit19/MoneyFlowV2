@@ -16,6 +16,7 @@ import SessionLoading from '../components/SessionLoading';
 import SessionError from '../components/SessionError';
 import WorkspaceLayout from '../components/layout/WorkspaceLayout';
 import LoginPage from '../pages/LoginPage';
+import LegalPage from '../pages/LegalPage';
 import WelcomePage from '../pages/WelcomePage';
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const TransactionsPage = lazy(() => import('../pages/TransactionsPage'));
@@ -339,6 +340,8 @@ export default function App() {
             />
           }
         />
+        <Route path="/privacy" element={<LegalPage type="privacy" />} />
+        <Route path="/terms" element={<LegalPage type="terms" />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -436,6 +439,8 @@ export default function App() {
             <Route path="/line-ai" element={<LineAiPage />} />
             <Route path="/linejs" element={<LineJsPage />} />
             <Route path="/settings" element={<SecurityPage />} />
+            <Route path="/privacy" element={<LegalPage type="privacy" />} />
+            <Route path="/terms" element={<LegalPage type="terms" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

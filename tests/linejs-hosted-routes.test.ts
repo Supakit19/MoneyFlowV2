@@ -17,6 +17,7 @@ describe('Hosted LINEJS routes isolate each signed-in owner', () => {
       const query = parts.join('?').replace(/\s+/g, ' ');
       const userId = values.find((x) => x === a || x === b) as string | undefined;
       if (query.includes('SELECT 1 FROM sessions')) return Promise.resolve([{}]);
+      if (query.includes('FROM bank_access_consents')) return Promise.resolve([{}]);
       if (query.includes('INSERT INTO bank_linejs_settings')) {
         const user = userId!;
         if (!saved.has(user))
@@ -163,6 +164,7 @@ describe('Hosted connector onboarding safeguards', () => {
     };
     const db = (parts: TemplateStringsArray) => {
       const query = parts.join(' ');
+      if (query.includes('FROM bank_access_consents')) return Promise.resolve([{}]);
       if (query.includes('INSERT INTO bank_linejs_settings')) return Promise.resolve([config]);
       if (query.includes('UPDATE bank_linejs_settings')) updates++;
       throw Error('Unexpected database mutation');

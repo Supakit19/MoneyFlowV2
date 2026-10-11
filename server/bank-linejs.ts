@@ -9,6 +9,7 @@ import type { BankSourceFormat } from '../integrations/linejs/bank-message-conte
 import { parseBankAlertFromSources } from './bank-source-parser.ts';
 import { pushBankReceipt, pushUnrecognizedBankAlert } from './bank-linejs-push.ts';
 import { extraBankSources, sourceByMid, validateAdditionalBankSources } from './linejs-bank-sources.ts';
+import { hasBankAccessConsent } from './bank-consent.ts';
 type SafeBankSource = BankSourceFormat | 'legacy';
 
 type AuthHandler = (ctx: any, userId: string) => Promise<any>;
@@ -123,6 +124,10 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
         guarded(async (ctx, userId) => {
           if (rejectOrigin(ctx)) return { error: 'คำขอจากเว็บไม่ได้รับอนุญาต' };
           const body = ctx.body || {};
+          if (body.enabled === true && !(await hasBankAccessConsent(db, userId))) {
+            ctx.set.status = 403;
+            return { error: 'กรุณาอนุญาตการเชื่อม LINE ส่วนตัวก่อนเปิดรับรายการ' };
+          }
           const current = await settings(db, userId);
           const enabled = body.enabled === undefined ? current.enabled : body.enabled;
           const pushLine = body.pushLine === undefined ? current.push_line : body.pushLine;

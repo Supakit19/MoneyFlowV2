@@ -13,6 +13,7 @@ import {
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
 import LineJsConnectorAgent from './LineJsConnectorAgent';
+import { BankAccessGuide } from './BankAccessGuide';
 import './LineJsBankAutomation.css';
 
 type ExtraBankSource = {
@@ -77,6 +78,7 @@ export default function LineJsBankAutomation() {
   const [newSenderMid, setNewSenderMid] = useState('');
   const [newAccountId, setNewAccountId] = useState('');
   const [verifiedExtraMid, setVerifiedExtraMid] = useState(false);
+  const [bankPermission, setBankPermission] = useState(false);
 
   async function load() {
     if (demoMode) return;
@@ -120,6 +122,10 @@ export default function LineJsBankAutomation() {
 
   async function save(next: Options) {
     if (demoMode || saving) return;
+    if (next.enabled && !bankPermission) {
+      notify('กรุณาอ่านและอนุญาตการเชื่อม LINE ส่วนตัวก่อน', 'warning');
+      return;
+    }
     setSaving(true);
     try {
       const result = await api('/bank/linejs/settings', 'PUT', {
@@ -211,6 +217,7 @@ export default function LineJsBankAutomation() {
         </span>
       </div>
 
+      <BankAccessGuide onPermissionChange={setBankPermission} />
       <LineJsConnectorAgent
         onConnected={load}
         onCandidate={(mid) => {
@@ -311,8 +318,8 @@ export default function LineJsBankAutomation() {
           <div className="mf-bank-extras">
             <strong>แชตธนาคารเพิ่มเติม · LINE เดียวกัน</strong>
             <p>
-              กสิกรและกรุงไทยใช้ LINE เดียวกันได้ แต่บันทึกแยกบัญชีเงินกัน
-              เพิ่มบัญชีกรุงไทยในหน้า “บัญชีและกระเป๋า” ก่อน หากยังไม่มี
+              กสิกรและกรุงไทยใช้ LINE เดียวกันได้ แต่บันทึกแยกบัญชีเงินกัน เพิ่มบัญชีกรุงไทยในหน้า
+              “บัญชีและกระเป๋า” ก่อน หากยังไม่มี
             </p>
             {options.extraSources.map((source) => (
               <div className="mf-bank-extra-item" key={source.bank}>
@@ -412,9 +419,7 @@ export default function LineJsBankAutomation() {
                       setVerifiedExtraMid(false);
                     }}
                   />
-                  <small>
-                    เมื่อระบบพบแชตแจ้งเตือนใหม่ ให้กด “เลือกแชตนี้” ด้านบน ระบบจะกรอกรหัสให้
-                  </small>
+                  <small>เมื่อระบบพบแชตแจ้งเตือนใหม่ ให้กด “เลือกแชตนี้” ด้านบน ระบบจะกรอกรหัสให้</small>
                 </label>
                 <label className="mf-bank-extra-verify">
                   <input

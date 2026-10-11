@@ -10,6 +10,7 @@ import {
 } from './linejs-hosted-manager.ts';
 import { lineJsLocalManager } from './linejs-local-manager.ts';
 import { extraBankSources } from './linejs-bank-sources.ts';
+import { hasBankAccessConsent } from './bank-consent.ts';
 
 type Guard = (fn: (ctx: any, userId: string) => Promise<unknown>) => (ctx: any) => Promise<unknown>;
 type Publish = PublishFn;
@@ -75,6 +76,10 @@ export function createHostedLineJsRoutes(
       guarded(async (ctx, userId) => {
         if (!originAllowed(ctx)) return { error: 'คำขอไม่ได้รับอนุญาต' };
         noCache(ctx);
+        if (!(await hasBankAccessConsent(db, userId))) {
+          ctx.set.status = 403;
+          return { error: 'กรุณาอนุญาตการเชื่อม LINE ส่วนตัวก่อน' };
+        }
         if (!manager.available) {
           ctx.set.status = 503;
           return { error: manager.reason };
@@ -144,6 +149,10 @@ export function createHostedLineJsRoutes(
       guarded(async (ctx, userId) => {
         if (!originAllowed(ctx)) return { error: 'คำขอไม่ได้รับอนุญาต' };
         noCache(ctx);
+        if (!(await hasBankAccessConsent(db, userId))) {
+          ctx.set.status = 403;
+          return { error: 'กรุณาอนุญาตการเชื่อม LINE ส่วนตัวก่อน' };
+        }
         if (!manager.available) {
           ctx.set.status = 503;
           return { error: manager.reason };

@@ -70,6 +70,17 @@ fi
 # are ever mounted inside the untrusted build stage.
 stage="$(mktemp -d /tmp/moneyflow-git-release.XXXXXXXX)"
 chmod 700 "$stage"
+cleanup_stage() {
+  case "$stage" in
+    /tmp/moneyflow-git-release.*)
+      if [[ -d "$stage" ]]; then
+        find "$stage" -mindepth 1 -delete
+        rmdir "$stage"
+      fi
+      ;;
+  esac
+}
+trap cleanup_stage EXIT
 mkdir -p "$stage/source" "$stage/dist"
 git archive HEAD | tar -x -C "$stage/source"
 
@@ -108,7 +119,7 @@ DOCKER
   mkdir -p "$stage/deploy"
   cp "$stage/source/deploy/nginx.conf" "$stage/deploy/nginx.conf"
   new_web="moneyflowv2-web:git-$tag"
-  docker build --pull=false --network=none --build-arg BASE_IMAGE="$old_web" \
+  docker build --pull=false --network=none --label org.opencontainers.image.revision="$current" --build-arg BASE_IMAGE="$old_web" \
     -t "$new_web" -f "$stage/Dockerfile.web" "$stage"
 fi
 
@@ -128,7 +139,7 @@ COPY integrations/linejs/encrypted-storage.ts /app/integrations/linejs/encrypted
 USER bun
 DOCKER
   new_api="moneyflowv2-api:git-$tag"
-  docker build --pull=false --network=none --build-arg BASE_IMAGE="$old_api" \
+  docker build --pull=false --network=none --label org.opencontainers.image.revision="$current" --build-arg BASE_IMAGE="$old_api" \
     -t "$new_api" -f "$stage/Dockerfile.api" "$stage/source"
   if [[ "$gateway" == 1 ]]; then new_gateway="$new_api"; fi
 fi

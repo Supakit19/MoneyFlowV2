@@ -100,6 +100,17 @@ function SiteHeader({ company = false }: { company?: boolean }) {
 }
 
 function SiteFooter() {
+  const [supportEmail, setSupportEmail] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/public/site-settings', { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!controller.signal.aborted) setSupportEmail(data?.settings?.support_email || '');
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   return (
     <footer className="mf-site-footer">
       <div className="mf-site-footer-inner">
@@ -112,6 +123,7 @@ function SiteFooter() {
           <a href="/#line">เพิ่มเพื่อน LINE</a>
           <Link to="/company">เกี่ยวกับเรา</Link>
           <Link to="/login">เข้าสู่ระบบ</Link>
+          {supportEmail && <a href={'mailto:' + supportEmail}>ติดต่อฝ่ายสนับสนุน</a>}
         </div>
       </div>
       <div className="mf-site-footer-bottom">

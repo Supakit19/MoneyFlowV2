@@ -1,7 +1,7 @@
 /**
  * One-time administrator provisioning.
  * Usage (interactive; avoids storing passwords in shell history):
- * bun scripts/create-admin.ts
+ * bun server/provision-admin.ts
  * Requires the application's existing DATABASE_URL environment configuration.
  */
 import postgres from 'postgres';

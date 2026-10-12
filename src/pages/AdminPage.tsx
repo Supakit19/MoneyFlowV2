@@ -74,7 +74,7 @@ export default function AdminPage() {
   };
   const stats = overview ? [
     { icon: Users, label: 'บัญชีสมาชิกทั้งหมด', value: overview.members, detail: 'บัญชีผู้ใช้ MoneyFlow' },
-    { icon: Eye, label: 'ผู้เข้าชมเว็บไซต์', value: overview.visitors, detail: 'ผู้เยี่ยมชมที่ไม่ซ้ำ นับตั้งแต่เริ่มเก็บข้อมูล' },
+    { icon: Eye, label: 'ผู้เข้าชมเว็บไซต์', value: overview.visitors, detail: 'เซสชันผู้เข้าชมที่ไม่ซ้ำ ไม่ใช่จำนวนบุคคลจริง' },
     { icon: BarChart3, label: 'ยอดเปิดหน้าเว็บไซต์', value: overview.pageviews, detail: 'จำนวนการเปิดหน้าที่ติดตามทั้งหมด' },
     { icon: UserPlus, label: 'สมัครใหม่ 30 วัน', value: overview.newMembers30d, detail: 'บัญชีสมาชิกใหม่' },
     { icon: MessageCircle, label: 'เชื่อมบัญชี LINE', value: overview.lineLinked, detail: 'สมาชิกที่เชื่อม LINE' },

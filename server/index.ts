@@ -10,6 +10,7 @@ import {
   isAuthorizedGoogleOrigin,
 } from './google-auth.ts';
 import { createAuthRoutes } from './auth-routes.ts';
+import { createAdminRoutes } from './admin-routes.ts';
 import { tokenHash } from './auth-methods.ts';
 import { validateAmount, validLocalDate, validateAiText } from '../src/validation.ts';
 import { startRealtime, type PublishFn } from './realtime.ts';
@@ -211,6 +212,7 @@ const issueLineOAuthSession = async (cookie: any, userId: string) => {
 const app = new Elysia()
   .use(cors({ origin: allowedOrigins, credentials: true }))
   .use(createAuthRoutes(sql))
+  .use(createAdminRoutes(sql))
   .use(createLineQrRoutes(sql, issueLineOAuthSession))
   .use(createMiniAppRoutes(sql))
   .use(createBankLineJsRoutes(sql, guarded, (...args) => publishFinance(...args)))

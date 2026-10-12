@@ -22,6 +22,31 @@ import BrandMark from '../components/BrandMark';
 import './MoneyFlowSite.css';
 
 const pocketUrl = 'https://liff.line.me/2011955989-OUGIQOBk';
+function SiteNotice({ page }: { page: '/' | '/company' }) {
+  const [notice, setNotice] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/public/site-settings', { signal: controller.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (!controller.signal.aborted) setNotice(data?.settings?.site_notice || ''); })
+      .catch(() => {});
+    try {
+      let visitor = sessionStorage.getItem('mf_site_visitor');
+      if (!visitor) {
+        visitor = crypto.randomUUID();
+        sessionStorage.setItem('mf_site_visitor', visitor);
+      }
+      void fetch('/api/public/visit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: page, visitor }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch { /* blocked storage or tracking must not block the website */ }
+    return () => controller.abort();
+  }, [page]);
+  return notice ? <div className="mf-site-admin-notice" role="status">{notice}</div> : null;
+}
+
 
 function SiteLogo({ light = false }: { light?: boolean }) {
   return (
@@ -263,6 +288,7 @@ export default function LandingPage() {
   return (
     <div className="mf-site">
       <SiteHeader />
+        <SiteNotice page="/" />
       <main>
         <section className="mf-site-hero">
           <div className="mf-site-hero-glow first" />
@@ -621,6 +647,7 @@ export function CompanyPage() {
   return (
     <div className="mf-site mf-site-company">
       <SiteHeader company />
+        <SiteNotice page="/company" />
       <main>
         <section className="mf-site-company-hero">
           <span className="mf-site-section-overline">

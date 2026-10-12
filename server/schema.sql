@@ -178,3 +178,33 @@ CREATE TABLE IF NOT EXISTS receipt_reviews (
 );
 CREATE INDEX IF NOT EXISTS idx_receipt_reviews_user_pending
   ON receipt_reviews(user_id,created_at DESC) WHERE status='pending';
+
+-- Administrator identities and sessions are deliberately isolated from member accounts.
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  token_hash TEXT PRIMARY KEY,
+  admin_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_expiry ON admin_sessions(expires_at);
+CREATE TABLE IF NOT EXISTS site_visits (
+  visitor_hash TEXT NOT NULL,
+  path TEXT NOT NULL,
+  visit_day DATE NOT NULL,
+  view_count INT NOT NULL DEFAULT 1,
+  PRIMARY KEY(visitor_hash,path,visit_day)
+);
+CREATE INDEX IF NOT EXISTS idx_site_visits_day ON site_visits(visit_day DESC);
+CREATE TABLE IF NOT EXISTS site_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT '',
+  updated_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

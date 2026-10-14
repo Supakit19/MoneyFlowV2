@@ -1,3 +1,5 @@
+import { bankConnectionMessage } from './bankConnectionCopy';
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -15,7 +17,10 @@ export const friendlyError = (error: any) => {
     return 'Gemini ใช้งานเกินโควตาชั่วคราว กรุณาลองอีกครั้งภายหลัง';
   if (/(403|billing|permission_denied)/i.test(msg))
     return 'ไม่สามารถใช้ Gemini ได้ กรุณาตรวจสิทธิ์และโควตา API Key ใน Google AI Studio';
-  return msg.length > 250 ? 'การประมวลผลไม่สำเร็จ กรุณาตรวจการตั้งค่าและลองใหม่' : msg;
+  const safeMessage = bankConnectionMessage(msg);
+  return safeMessage.length > 250
+    ? 'การประมวลผลไม่สำเร็จ กรุณาตรวจการตั้งค่าและลองใหม่'
+    : safeMessage;
 };
 export const api = async (path: string, method = 'GET', body?: unknown) => {
   const response = await fetch('/api' + path, {

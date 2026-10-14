@@ -15,6 +15,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
+import { bankConnectionMessage } from '../lib/bankConnectionCopy';
 import './LineJsLocalAgent.css';
 import { bankChatIdentity } from './bankChatCandidates';
 import BankChatIdentityLabel from './BankChatIdentityLabel';
@@ -110,7 +111,7 @@ export default function LineJsLocalAgent({
       );
       await refresh();
     } catch (e: any) {
-      notify(e.message || 'ควบคุมการเชื่อมต่อไม่สำเร็จ', 'error');
+      notify(bankConnectionMessage(e), 'error');
     } finally {
       setBusy(false);
     }
@@ -134,8 +135,8 @@ export default function LineJsLocalAgent({
         <div className="mf-agent-notice">
           <CircleHelp size={17} />
           <span>
-            {agent?.reason ||
-              'การรับแจ้งเตือนบนเครื่องนี้ใช้ได้เมื่อเปิด MoneyFlow บนคอมพิวเตอร์เครื่องนี้เท่านั้น'}
+            {bankConnectionMessage(agent?.reason ||
+              'การรับแจ้งเตือนบนเครื่องนี้ใช้ได้เมื่อเปิด MoneyFlow บนคอมพิวเตอร์เครื่องนี้เท่านั้น')}
           </span>
         </div>
       ) : !agent ? (
@@ -270,7 +271,7 @@ export default function LineJsLocalAgent({
           {agent.lastError && (
             <div className="mf-agent-notice">
               <AlertTriangle size={17} />
-              <span>{agent.lastError}</span>
+              <span>{bankConnectionMessage(agent.lastError)}</span>
             </div>
           )}
           <p className="mf-agent-footnote">

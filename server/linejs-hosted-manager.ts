@@ -71,8 +71,8 @@ export class HostedLineJsManager {
     }
   }
   get reason() {
-    if (process.env.LINEJS_HOSTED_ENABLED !== '1') return 'ผู้ดูแลระบบยังไม่เปิด Hosted LINEJS';
-    return this.available ? '' : 'เซิร์ฟเวอร์ยังขาด Node.js / LINEJS หรือกุญแจเข้ารหัส';
+    if (process.env.LINEJS_HOSTED_ENABLED !== '1') return 'ผู้ดูแลระบบยังไม่เปิดการรับแจ้งเตือนธนาคาร';
+    return this.available ? '' : 'ระบบรับแจ้งเตือนธนาคารยังไม่พร้อมใช้งาน กรุณาติดต่อผู้ดูแล MoneyFlow';
   }
   private sessionPath(userId: string) {
     if (!uuid(userId)) throw Error('Invalid user identifier');

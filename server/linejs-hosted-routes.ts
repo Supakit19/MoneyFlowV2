@@ -83,15 +83,15 @@ export function createHostedLineJsRoutes(
         const occupancy = manager.status(userId);
         if (!occupancy.running && occupancy.runningWorkers >= occupancy.maxWorkers) {
           ctx.set.status = 503;
-          return { error: 'Hosted LINEJS ใช้งานครบจำนวนผู้ใช้พร้อมกัน กรุณาลองใหม่ภายหลัง' };
+          return { error: 'ระบบรับแจ้งเตือนธนาคารมีผู้ใช้งานเต็มชั่วคราว กรุณาลองใหม่ภายหลัง' };
         }
         if (lineJsLocalManager.status(userId, old.token_hash).running) {
           ctx.set.status = 409;
-          return { error: 'กรุณาหยุด Local LINEJS เดิมก่อนเปลี่ยนเป็น Hosted' };
+          return { error: 'กรุณาหยุดการเชื่อม LINE บนอุปกรณ์เดิมก่อนเปลี่ยนเป็นการเชื่อมผ่านเซิร์ฟเวอร์' };
         }
         if (old.connector_mode === 'hosted' && old.connector_run_enabled) {
           ctx.set.status = 409;
-          return { error: 'กรุณาหยุด Hosted LINEJS ก่อนเชื่อมใหม่' };
+          return { error: 'กรุณาหยุดการรับแจ้งเตือน LINE เดิมก่อนเชื่อมใหม่' };
         }
         // QR login grants access to a personal LINE account, so require fresh login.
         const session = String(ctx.cookie?.mf_session?.value || '');
@@ -133,7 +133,7 @@ export function createHostedLineJsRoutes(
         } catch {
           await db`UPDATE bank_linejs_settings SET connector_run_enabled=false WHERE user_id=${userId}`;
           ctx.set.status = 503;
-          return { error: 'เริ่ม Hosted LINEJS ไม่สำเร็จ กรุณาตรวจโควตา Worker แล้วลองใหม่' };
+          return { error: 'เริ่มรับแจ้งเตือนธนาคารไม่สำเร็จ กรุณาลองใหม่ภายหลัง' };
         }
         publish(userId, 'settings.changed');
         return { ok: true, agent: manager.status(userId) };

@@ -188,7 +188,7 @@ describe('Hosted connector onboarding safeguards', () => {
       }),
     );
     expect(response.status).toBe(503);
-    expect(((await response.json()) as any).error).toContain('ครบ');
+    expect(((await response.json()) as any).error).toContain('ผู้ใช้งานเต็ม');
     expect(updates).toBe(0);
   });
 });

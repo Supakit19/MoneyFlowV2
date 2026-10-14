@@ -15,6 +15,11 @@ import {
   Wifi,
 } from 'lucide-react';
 import { api } from '../lib/api';
+import {
+  BANK_CONNECTION_BUSY,
+  bankConnectionAtCapacity,
+  bankConnectionMessage,
+} from '../lib/bankConnectionCopy';
 import type { Account } from '../lib/finance';
 import { bankChatCandidates, bankChatIdentity } from './bankChatCandidates';
 import BankChatIdentityLabel from './BankChatIdentityLabel';
@@ -110,7 +115,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
         }
         setFailure('');
       } catch (e) {
-        if (first) setFailure(e instanceof Error ? e.message : 'อ่านสถานะการเชื่อมต่อไม่สำเร็จ');
+        if (first) setFailure(bankConnectionMessage(e));
       } finally {
         if (first) setLoading(false);
       }
@@ -131,6 +136,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
   const agent = useLegacy ? local?.agent : hosted?.agent;
   const chatCandidates = bankChatCandidates(agent);
   const serverSupported = useLegacy || Boolean(hosted?.agent?.available);
+  const capacityFull = !useLegacy && bankConnectionAtCapacity(hosted?.agent);
   const canSetup = useLegacy
     ? local?.agent?.linked === true
     : hosted?.connectorMode === 'hosted' && hosted?.connected === true;
@@ -139,7 +145,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
   const currentAccount = accountId || firstBank?.id || '';
 
   async function connect() {
-    if (busy || !serverSupported) return;
+    if (busy || !serverSupported || capacityFull) return;
     setBusy(true);
     setFailure('');
     try {
@@ -153,7 +159,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
       notify('เปิดการเชื่อมต่อแล้ว สแกน QR เมื่อปรากฏบนหน้าจอ', 'info');
       await refresh();
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'เปิดการเชื่อมต่อไม่สำเร็จ';
+      const message = bankConnectionMessage(e);
       setFailure(message);
       notify(message, 'error');
     } finally {
@@ -198,16 +204,17 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
         pushLine: lineConnected ? pushLine : false,
       });
       if (result.connectorWarning) {
-        setFailure(result.connectorWarning);
+        const warning = bankConnectionMessage(result.connectorWarning);
+        setFailure(warning);
         setSaved(false);
-        notify(result.connectorWarning, 'warning');
+        notify(warning, 'warning');
       } else {
         setSaved(enabled);
         notify('ตั้งค่ารับแจ้งเตือนธนาคารสำเร็จแล้ว', 'success');
       }
       await refresh();
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'บันทึกการเชื่อมต่อธนาคารไม่สำเร็จ';
+      const message = bankConnectionMessage(e);
       setFailure(message);
       notify(message, 'error');
     } finally {
@@ -230,11 +237,16 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
           <p>เชื่อม LINE ส่วนตัว 1 ครั้ง แล้วให้ MoneyFlow รับแจ้งเตือนตามบัญชีของคุณ</p>
         </div>
       </div>
+      {capacityFull && !hosted?.connected && (
+        <div className="bank-onboard-notice" role="status">
+          <AlertCircle size={18} /> <span>{BANK_CONNECTION_BUSY}</span>
+        </div>
+      )}
       {!serverSupported ? (
         <div className="bank-onboard-notice">
           <AlertCircle size={18} />
           <span>
-            {agent?.reason || 'ยังไม่พร้อมเชื่อม LINE กับธนาคาร'} —
+            {bankConnectionMessage(agent?.reason || 'ยังไม่พร้อมเชื่อม LINE กับธนาคาร')} —
             ข้ามขั้นตอนนี้และกลับมาเชื่อมภายหลังได้
           </span>
         </div>
@@ -253,7 +265,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
             <button
               type="button"
               className="bank-onboard-button"
-              disabled={busy}
+              disabled={busy || (capacityFull && !hosted?.connected)}
               onClick={() => void connect()}
             >
               <Link2 size={17} />
@@ -464,7 +476,7 @@ export default function BankOnboardingSetup({ accounts, lineConnected, notify }:
               ระบบพร้อมรับแจ้งเตือนของคุณแล้ว ไม่ต้องเปิดหน้านี้ค้างไว้เมื่อเซิร์ฟเวอร์ทำงานอยู่
             </div>
           )}
-          {agent?.lastError && <p className="bank-onboard-hint">{agent.lastError}</p>}
+          {agent?.lastError && <p className="bank-onboard-hint">{bankConnectionMessage(agent.lastError)}</p>}
         </>
       )}
       {failure && (

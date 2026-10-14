@@ -15,6 +15,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { useFinancePage } from '../app/FinanceContext';
 import { askConfirm } from '../ConfirmDialog';
+import { BANK_CONNECTION_BUSY, bankConnectionAtCapacity, bankConnectionMessage } from '../lib/bankConnectionCopy';
 import './LineJsLocalAgent.css';
 import { bankChatCandidates, bankChatIdentity } from './bankChatCandidates';
 import BankChatIdentityLabel from './BankChatIdentityLabel';
@@ -114,7 +115,7 @@ export default function LineJsHostedAgent({
       if (name === 'connect' || name === 'disconnect' || name === 'stop') await onConnected?.();
       await refresh();
     } catch (error: any) {
-      notify(error.message || 'ทำรายการไม่สำเร็จ', 'error');
+      notify(bankConnectionMessage(error), 'error');
     } finally {
       setBusy(false);
     }
@@ -122,6 +123,7 @@ export default function LineJsHostedAgent({
   if (demoMode) return null;
   const a = result?.agent;
   const chatCandidates = bankChatCandidates(a);
+  const capacityFull = bankConnectionAtCapacity(a);
   return (
     <div className="mf-agent-card" aria-label="เชื่อม LINE เพื่อรับแจ้งเตือนธนาคาร">
       <div className="mf-agent-heading">
@@ -143,7 +145,7 @@ export default function LineJsHostedAgent({
       ) : !a.available ? (
         <div className="mf-agent-notice">
           <AlertTriangle size={17} />
-          <span>{a.reason || 'ยังไม่พร้อมเชื่อม LINE'} กรุณาแจ้งผู้ดูแล MoneyFlow</span>
+          <span>{bankConnectionMessage(a.reason || 'ยังไม่พร้อมเชื่อม LINE')} กรุณาแจ้งผู้ดูแล MoneyFlow</span>
         </div>
       ) : (
         <>
@@ -162,12 +164,17 @@ export default function LineJsHostedAgent({
               กำลังใช้งาน {a.runningWorkers}/{a.maxWorkers} บัญชี
             </span>
           </div>
+          {capacityFull && !result?.connected && (
+            <div className="mf-agent-notice" role="status">
+              <AlertTriangle size={17} /> <span>{BANK_CONNECTION_BUSY}</span>
+            </div>
+          )}
           <div className="mf-agent-buttons">
             {!result?.connected && (
               <button
                 type="button"
                 className="is-primary"
-                disabled={busy || a.runningWorkers >= a.maxWorkers}
+                disabled={busy || capacityFull}
                 onClick={() => void action('connect')}
               >
                 <Link2 size={16} /> เชื่อม LINE ด้วย QR
@@ -258,7 +265,7 @@ export default function LineJsHostedAgent({
           )}
           {a.lastError && (
             <div className="mf-agent-notice">
-              <AlertTriangle size={17} /> {a.lastError}
+              <AlertTriangle size={17} /> {bankConnectionMessage(a.lastError)}
             </div>
           )}
           <p className="mf-agent-footnote">

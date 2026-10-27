@@ -234,7 +234,7 @@ export default function FinanceInboxPage() {
         >
           <FileImage size={17} /> อ่านสลิปและใบเสร็จ
         </button>
-        <Link to="/linejs">
+        <Link to="/bank-connections">
           <Wallet size={16} /> ตั้งค่าธนาคาร <ArrowRight size={14} />
         </Link>
       </div>

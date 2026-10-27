@@ -684,6 +684,11 @@ try {
 setInterval(() => void workQueue(), 4000);
 app.listen({ hostname: process.env.LISTEN_HOST || '127.0.0.1', port });
 publishFinance = startRealtime(sql, port + 50);
+// Private, on-demand, message-free diagnostics for operators. Trigger SIGUSR2
+// inside the API container; never include chat contents, PINs or tokens.
+process.on('SIGUSR2', () => {
+  console.log('[LINEJS HEALTH]', JSON.stringify(hostedLineJsManager.diagnosticSummary()));
+});
 console.log('MoneyFlow API http://127.0.0.1:' + port);
 
 // Hosted sessions are resumed from per-user encrypted credentials only after

@@ -167,7 +167,7 @@ export function createBankLineJsRoutes(db: Sql, guarded: Guarded, publish: Publi
         UPDATE bank_linejs_settings
         SET enabled=${enabled},auto_save=false,auto_transfer=false,push_line=${pushLine},
           bank=${bank},sender_mid=${senderMid || null},account_id=${accountId || null},
-          extra_sources=${JSON.stringify(extras)}::jsonb,updated_at=now()
+          extra_sources=${db.json(extras)},updated_at=now()
         WHERE user_id=${userId} RETURNING *
       `;
           // A hosted user finishing Sender MID/account setup is switched from

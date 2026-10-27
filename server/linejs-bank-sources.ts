@@ -18,8 +18,18 @@ const validUuid = (value: unknown): value is string =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 export function extraBankSources(row: any): AdditionalBankSource[] {
-  if (!Array.isArray(row?.extra_sources)) return [];
-  return row.extra_sources
+  // Legacy settings sometimes stored an encoded JSON string inside JSONB.
+  // Decode that once; all new writes use the postgres JSON helper.
+  let sources: unknown = row?.extra_sources;
+  if (typeof sources === 'string') {
+    try {
+      sources = JSON.parse(sources);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(sources)) return [];
+  return sources
     .filter(
       (x: any) =>
         x &&

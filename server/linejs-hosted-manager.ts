@@ -117,6 +117,25 @@ export class HostedLineJsManager {
       retryTimer: null,
     };
   }
+  diagnosticSummary() {
+    return [...this.sessions.entries()].map(([userId, r]) => ({
+      accountRef: userId.slice(0, 8),
+      state: r.state,
+      mode: r.mode,
+      running: !!r.child,
+      candidateCount: r.candidateMids.length,
+      received: r.observedCount,
+      skipped: r.skippedCount,
+      posted: r.eventCount,
+      historyState: r.historyState,
+      historyChecks: r.historyChecks,
+      historyFailures: r.historyFailures,
+      historyRecent: r.historyRecent,
+      lastOutcome: r.lastOutcome,
+      hasError: Boolean(r.lastError),
+    }));
+  }
+
   status(userId: string) {
     const r = this.sessions.get(userId);
     return {

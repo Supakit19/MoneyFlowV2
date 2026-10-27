@@ -28,7 +28,7 @@ export const pagePaths = {
   accounts: '/accounts',
   recurring: '/recurring',
   integrations: '/line-ai',
-  linejs: '/linejs',
+  linejs: '/bank-connections',
   security: '/settings',
 } as const;
 export type PageId = keyof typeof pagePaths;

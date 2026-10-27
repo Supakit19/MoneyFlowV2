@@ -434,7 +434,8 @@ export default function App() {
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/recurring" element={<RecurringPage />} />
             <Route path="/line-ai" element={<LineAiPage />} />
-            <Route path="/linejs" element={<LineJsPage />} />
+            <Route path="/bank-connections" element={<LineJsPage />} />
+            <Route path="/linejs" element={<Navigate to="/bank-connections" replace />} />
             <Route path="/settings" element={<SecurityPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
